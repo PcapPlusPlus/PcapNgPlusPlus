@@ -38,7 +38,7 @@ Same as PcapPlusPlus:
 - **Namespace:** `pcpp`.
 - **Naming:** classes `PascalCase`, methods `camelCase`, members `m_PascalCase`.
 - **Header guards:** `#pragma once`.
-- **Formatting:** `clang-format` 19.1.6 with the repository's `.clang-format` (to be copied from PcapPlusPlus).
+- **Formatting:** `clang-format` 19.1.6. Each part (`src/`/`include/`, `conformance/`, etc.) gets its own `.clang-format` when it needs one; there is no repo-wide config. Never reformat `legacy/`.
 - **Docs:** public API gets Doxygen `///` comments.
 - **Memory:** RAII; no raw `new`/`delete` without clear ownership. Classes that own memory define or delete copy operations.
 - **Python** (generator, pytest): standard library where possible; dependencies in `conformance/requirements.txt`.
