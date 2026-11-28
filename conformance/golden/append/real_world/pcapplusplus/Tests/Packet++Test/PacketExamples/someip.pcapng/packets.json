@@ -1,0 +1,44 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 2032,
+    "sha256": "ddcf04b7ea367e806c6b2978d824ba1150b38dd6a6b826edf87569467cba94f4"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": null,
+      "userAppDesc": null,
+      "interfaces": []
+    },
+    "packetCount": 4,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1662906771,"timestampNsec":1000,"capturedLength":120,"originalLength":120,"comment":null,"data":"027dfa001001027dfa0117408100000286dd600d18bf003a0640fd537cb8038300020000000000010117fd537cb80383000e0000000000000014727471fc0026ae1b000019755018102c7e2200006059410c0000001e0003000a0105000040001000000000000000000085000000000000400100281812b5"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1662906771,"timestampNsec":2000,"capturedLength":143,"originalLength":143,"comment":null,"data":"027dfa001001027dfa0117408100000286dd6000000000521100fd537cb8038300020000000000010117fd537cb80383000e0000000000000014727471fc0052f9e96059410c0000001e0003000a01050000400010000000000000000000850000000000004001006060410d0000001c0004000b010600000102030405060000000000000000000000000014000000"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":60,"originalLength":60,"comment":"appended","data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":1514,"originalLength":9000,"comment":null,"dataSha256":"05954e40a82511cf2db9f9f9d66a6d12d7cda0dec98aa1792c6fa06e35eb9081"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  }
+}

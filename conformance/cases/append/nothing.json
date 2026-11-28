@@ -1,0 +1,4 @@
+{
+  "description": "Open for append and close without writing: the file must be unchanged",
+  "steps": []
+}

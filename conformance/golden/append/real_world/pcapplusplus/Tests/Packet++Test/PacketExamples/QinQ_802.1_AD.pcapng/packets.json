@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": "64-bit Windows 7 Service Pack 1, build 7601",
+    "userAppDesc": "Dumpcap 1.12.1 (v1.12.1-0-g01b65bf from master-1.12)",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 3468,
+    "sha256": "3a8bfd8dea85946c2d803f387675e2cba039a9087449753a5c6aa791bd7abf4d"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": "64-bit Windows 7 Service Pack 1, build 7601",
+      "userAppDesc": "Dumpcap 1.12.1 (v1.12.1-0-g01b65bf from master-1.12)",
+      "interfaces": []
+    },
+    "packetCount": 3,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1430378523,"timestampNsec":814664000,"capturedLength":1500,"originalLength":1500,"comment":null,"dataSha256":"f4d1b78d11d7ad50fdd215b4e5c8d1ce1f9708516deab790da4549ed5b258c0c"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":60,"originalLength":60,"comment":"appended","data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":1514,"originalLength":9000,"comment":null,"dataSha256":"05954e40a82511cf2db9f9f9d66a6d12d7cda0dec98aa1792c6fa06e35eb9081"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  }
+}

@@ -117,6 +117,23 @@ namespace pcpp
 			bool opened = false;  ///< False if light_pcapng_open_write() returned null
 		};
 
+		/// What to append: parsed from an append case's JSON file (see conformance/README.md).
+		struct AppendScript
+		{
+			std::vector<WriteStep> steps;
+		};
+
+		/// What appending exposed. The file itself is examined, and read back, by the tool.
+		struct AppendResult
+		{
+			bool opened = false;  ///< False if light_pcapng_open_append() returned null
+
+			/// light_pcang_get_file_info() right after opening: append reads the whole file for interfaces first.
+			/// Absent if the handle has none.
+			bool hasFileInfo = false;
+			FileInfo fileInfo;
+		};
+
 		/// A pcapng implementation under test.
 		class Backend
 		{
@@ -134,6 +151,12 @@ namespace pcpp
 			/// @param[in] script What to write.
 			/// @return Whether the file could be opened.
 			virtual WriteResult write(const std::string& path, const WriteScript& script) = 0;
+
+			/// Opens the existing file @p path for appending and runs @p script on it: run each step, close.
+			/// @param[in] path File to append to; it is modified.
+			/// @param[in] script What to append.
+			/// @return Whether the file could be opened, and the file info found when opening it.
+			virtual AppendResult append(const std::string& path, const AppendScript& script) = 0;
 		};
 
 		/// Creates the backend called @p name ("legacy"), or returns null if there is no such backend.

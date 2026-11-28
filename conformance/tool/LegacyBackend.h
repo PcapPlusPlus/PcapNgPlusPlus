@@ -12,6 +12,7 @@ namespace pcpp
 		public:
 			ReadResult read(const std::string& path, bool readAllInterfaces) override;
 			WriteResult write(const std::string& path, const WriteScript& script) override;
+			AppendResult append(const std::string& path, const AppendScript& script) override;
 		};
 	}  // namespace conformance
 }  // namespace pcpp

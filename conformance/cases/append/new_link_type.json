@@ -1,0 +1,6 @@
+{
+  "description": "A packet with link type 147 (USER0), which no corpus file uses, so the writer always appends a new IDB",
+  "steps": [
+    {"packet": {"data": "00112233445566778899", "linkType": 147, "timestampSec": 1700000000}}
+  ]
+}

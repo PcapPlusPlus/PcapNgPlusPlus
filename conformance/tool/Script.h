@@ -20,5 +20,10 @@ namespace pcpp
 		/// @param[in] text The script's JSON.
 		/// @throws ScriptError if the script is invalid.
 		WriteScript parseWriteScript(const std::string& text);
+
+		/// Parses an append script: a description and steps, in the same format as a write script's.
+		/// @param[in] text The script's JSON.
+		/// @throws ScriptError if the script is invalid.
+		AppendScript parseAppendScript(const std::string& text);
 	}  // namespace conformance
 }  // namespace pcpp

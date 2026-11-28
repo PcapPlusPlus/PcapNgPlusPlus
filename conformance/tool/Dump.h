@@ -30,5 +30,9 @@ namespace pcpp
 		/// Serializes a write as canonical JSON: whether the open succeeded, the written file (size and sha256, unless
 		/// compressed) and @p reread, the read dump of the written file (null if there is no file).
 		std::string dumpWriteResult(const WriteResult& result, const WrittenFile& file, const ReadResult* reread);
+
+		/// Serializes an append as canonical JSON: whether the open succeeded, the file info found when opening, the
+		/// resulting file (size and sha256) and @p reread, the read dump of the file (null if there is no file).
+		std::string dumpAppendResult(const AppendResult& result, const WrittenFile& file, const ReadResult* reread);
 	}  // namespace conformance
 }  // namespace pcpp

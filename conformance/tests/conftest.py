@@ -10,6 +10,7 @@ import pytest
 CONFORMANCE_DIR = pathlib.Path(__file__).resolve().parent.parent
 CORPUS_DIR = CONFORMANCE_DIR / "corpus"
 WRITE_CASES_DIR = CONFORMANCE_DIR / "cases" / "write"
+APPEND_CASES_DIR = CONFORMANCE_DIR / "cases" / "append"
 GOLDEN_DIR = CONFORMANCE_DIR / "golden"
 MAX_DIFF_LINES = 60
 
@@ -57,6 +58,11 @@ def write_cases():
     the .json suffix."""
     paths = WRITE_CASES_DIR.rglob("*.json")
     return sorted((p.relative_to(WRITE_CASES_DIR).with_suffix("").as_posix(), p) for p in paths)
+
+
+def append_scripts():
+    """Every append script, as (name, path), in a stable order. Each one runs against every corpus file."""
+    return sorted((p.relative_to(APPEND_CASES_DIR).with_suffix("").as_posix(), p) for p in APPEND_CASES_DIR.rglob("*.json"))
 
 
 def write_case_needs_zstd(script_path):
@@ -116,6 +122,11 @@ class Tool:
 
     def write(self, backend, script_path, output_dir, timeout=None):
         args = ["write", "--backend", backend, "--script", str(script_path), "--output-dir", str(output_dir)]
+        return self._dump(args, timeout)
+
+    def append(self, backend, script_path, file_path, timeout=None):
+        """Appends to `file_path`, which is modified."""
+        args = ["append", "--backend", backend, "--script", str(script_path), "--file", str(file_path)]
         return self._dump(args, timeout)
 
 

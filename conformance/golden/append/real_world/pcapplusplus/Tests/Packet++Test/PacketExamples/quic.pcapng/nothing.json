@@ -1,0 +1,53 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": "File created by merging: \nFile1: quic-handshake-1rtt.pcapng \nFile2: quic-initial.pcapng \nFile3: quic-initial-0rtt.pcapng \nFile4: quic-retry.pcapng \nFile5: quic-version-negotiation.pcapng \n",
+    "hardwareDesc": null,
+    "osDesc": "macOS 26.5.2, build 25F84 (Darwin 25.5.0)",
+    "userAppDesc": "Mergecap (Wireshark) 4.6.7 (v4.6.7-0-gb439fb7b47a9)",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000000},
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 3840,
+    "sha256": "a7bacea3f1ec37b124ffc679a96a25a22966a517b2e5b1394f45662a3c99d375"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": "File created by merging: \nFile1: quic-handshake-1rtt.pcapng \nFile2: quic-initial.pcapng \nFile3: quic-initial-0rtt.pcapng \nFile4: quic-retry.pcapng \nFile5: quic-version-negotiation.pcapng \n",
+      "hardwareDesc": null,
+      "osDesc": "macOS 26.5.2, build 25F84 (Darwin 25.5.0)",
+      "userAppDesc": "Mergecap (Wireshark) 4.6.7 (v4.6.7-0-gb439fb7b47a9)",
+      "interfaces": []
+    },
+    "packetCount": 5,
+    "packets": [
+      {"interfaceId":1,"linkType":1,"timestampSec":1785744105,"timestampNsec":109524000,"capturedLength":1294,"originalLength":1294,"comment":null,"dataSha256":"3bdd7cd8f2c006fb2246cc099b83cf8e97000876df1e3d1cd348b7324991578e"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1785744105,"timestampNsec":220825000,"capturedLength":189,"originalLength":189,"comment":null,"data":"08b4b11a46ade67a8579439b0800450000af000040004011b9afc0a856208efbdacac8ad01bb009b7bfaea0000000108f147b631d2ec8eb3033bccd44048f02fcfe646d7056d15fc2e2ec4f2088cd8dc3be6061bb4d9ea51c7c0af4221e8710cfc3ca44f9291614afec9bfcb872769916bcd0a04db18aa1f82e8be0929c4e26ff43fad4569035af147b631d2ec8eb3d12a624dc80139ce72c5ec281119017f6ce6ea0afc23f1886949b7ad65fbe843670406d9dca421a600291a6de9e4"},
+      {"interfaceId":2,"linkType":1,"timestampSec":1785744111,"timestampNsec":937702000,"capturedLength":1294,"originalLength":1294,"comment":null,"dataSha256":"ad48d5b6881eaa9783a6222dde59c11da0b4efa76e4f378736bd4498f3037ad6"},
+      {"interfaceId":3,"linkType":1,"timestampSec":1786523918,"timestampNsec":1000,"capturedLength":78,"originalLength":78,"comment":null,"data":"2052454356002053454e440008004500004012340000ff1192730a0101010a02020201bb01bb002c3f54ff000000010008f067a5502a4262b5746f6b656e04a265ba2eff4d829058fb3f0f2496ba"},
+      {"interfaceId":4,"linkType":1,"timestampSec":1786524019,"timestampNsec":1000,"capturedLength":73,"originalLength":73,"comment":null,"data":"2052454356002053454e440008004500003b12340000ff1192780a0101010a02020201bb01bb00279f75ea00000000089aac5a49ba87a84908f92f4336fa951ba14547471600000001"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000000},
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  }
+}

@@ -186,38 +186,55 @@ namespace pcpp
 			return render(json);
 		}
 
+		namespace
+		{
+			Json writtenFileToJson(const WrittenFile& file)
+			{
+				if (!file.exists)
+				{
+					return nullptr;
+				}
+				Json json;
+				json["compressed"] = file.compressed;
+				// A compressed file's bytes depend on the zstd version, so only uncompressed files are compared
+				// byte for byte; the reread checks the content of both
+				json["size"] = file.compressed ? Json(nullptr) : Json(file.size);
+				json["sha256"] = file.compressed ? Json(nullptr) : Json(file.sha256);
+				return json;
+			}
+
+			Json rereadToJson(const ReadResult* reread)
+			{
+				if (reread == nullptr)
+				{
+					return nullptr;
+				}
+				Json json;
+				addReadFields(json, *reread);
+				return json;
+			}
+		}  // namespace
+
+		std::string dumpAppendResult(const AppendResult& result, const WrittenFile& file, const ReadResult* reread)
+		{
+			Json json;
+			json["formatVersion"] = DumpFormatVersion;
+			json["operation"] = "append";
+			json["opened"] = result.opened;
+			json["fileInfo"] = result.hasFileInfo ? fileInfoToJson(result.fileInfo) : Json(nullptr);
+			json["file"] = writtenFileToJson(file);
+			json["reread"] = rereadToJson(reread);
+			return render(json);
+		}
+
 		std::string dumpWriteResult(const WriteResult& result, const WrittenFile& file, const ReadResult* reread)
 		{
 			Json json;
 			json["formatVersion"] = DumpFormatVersion;
 			json["operation"] = "write";
 			json["opened"] = result.opened;
-
-			if (!file.exists)
-			{
-				json["file"] = nullptr;
-			}
-			else
-			{
-				Json fileJson;
-				fileJson["compressed"] = file.compressed;
-				// A compressed file's bytes depend on the zstd version, so only uncompressed files are compared
-				// byte for byte; the reread checks the content of both
-				fileJson["size"] = file.compressed ? Json(nullptr) : Json(file.size);
-				fileJson["sha256"] = file.compressed ? Json(nullptr) : Json(file.sha256);
-				json["file"] = std::move(fileJson);
-			}
-
-			if (reread == nullptr)
-			{
-				json["reread"] = nullptr;
-			}
-			else
-			{
-				Json rereadJson;
-				addReadFields(rereadJson, *reread);
-				json["reread"] = std::move(rereadJson);
-			}
+			json["file"] = writtenFileToJson(file);
+			json["reread"] = rereadToJson(reread);
 			return render(json);
 		}
 	}  // namespace conformance

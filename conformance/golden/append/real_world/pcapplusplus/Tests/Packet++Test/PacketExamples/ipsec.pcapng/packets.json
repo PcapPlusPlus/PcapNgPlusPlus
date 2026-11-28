@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": "64-bit Windows 10 (2004), build 19041",
+    "userAppDesc": "Mergecap (Wireshark) 3.4.1 (v3.4.1-0-g1a27f405875f)",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 2480,
+    "sha256": "67853f7fa3ba6eacb69ed8f471720e728294c78c306b0f72ab246a3d5213eaa1"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": "64-bit Windows 10 (2004), build 19041",
+      "userAppDesc": "Mergecap (Wireshark) 3.4.1 (v3.4.1-0-g1a27f405875f)",
+      "interfaces": []
+    },
+    "packetCount": 5,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1214051927,"timestampNsec":42805000,"capturedLength":194,"originalLength":194,"comment":null,"data":"c20157750000c200577500000800450000b4006f0000ff33a6a50a0000010a000002320400008179b7050000000362325d2ea14e86ab902b70fb48dac2e400000003c6b5cbef1400937243a29ad397954d18309e98b62a16e80e5ce8eca1b8ac06c981b436c2421ab522d4a1130db06caf1ea8c331701bfaf95f34f2a9364fe3f92917995a93dc0e09a7dd55b540fab377648bff49eb7d9eb5f60f64918c5ffb091d713909ed495594eb318e68f2f39a2aaa2b990872b1b87738a0fe04a784a04453"},
+      {"interfaceId":2,"linkType":1,"timestampSec":1418173441,"timestampNsec":14239000,"capturedLength":62,"originalLength":62,"comment":null,"data":"68a3c4f949f65475d0c90b8186dd600000000008323f20010470e5bf100185192d1fc57dfc4f20010470e5bfdead7db00921a2e91c214950763620455350"},
+      {"interfaceId":1,"linkType":1,"timestampSec":1438520405,"timestampNsec":263780000,"capturedLength":158,"originalLength":158,"comment":null,"data":"00175aed7af0001da18b36d0080045000090021b0000ff331fccc0a80c01c0a80c0204040000646adc800000000803d9ebccbbc8d14cccb87ade45000064003f0000ff012206c0a80c01c0a80c020800b1a9000c00030000000004a1c7f0abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":60,"originalLength":60,"comment":"appended","data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":1514,"originalLength":9000,"comment":null,"dataSha256":"05954e40a82511cf2db9f9f9d66a6d12d7cda0dec98aa1792c6fa06e35eb9081"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Two Ethernet packets, one with a comment, with a flush between them. Files whose first interface is Ethernet reuse it; others get a new IDB",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "linkType": 1, "timestampSec": 1700000000, "timestampNsec": 1, "comment": "appended"}},
+    {"flush": true},
+    {"packet": {"data": {"length": 1514}, "linkType": 1, "timestampSec": 1700000001, "originalLength": 9000}}
+  ]
+}

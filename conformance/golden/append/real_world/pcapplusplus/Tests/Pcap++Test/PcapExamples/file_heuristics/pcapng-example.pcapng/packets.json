@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": "CLIENT_RANDOM E39B5BF4903C68684E8512FB2F60213E9EE843A0810B4982B607914D8092D482 95A5D39B02693BC1FB39254B179E9293007F6D37C66172B1EE4EF0D5E25CE1DABE878B6143DC3B266883E51A75E99DF9                                                   ",
+    "hardwareDesc": null,
+    "osDesc": "Linux 3.18.1-1-ARCH",
+    "userAppDesc": "Dumpcap (Wireshark) 1.99.1 (Git Rev Unknown from unknown)",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 2200,
+    "sha256": "49c747e781bb068850612c39ab8bf3107b86302c6a7e5973e43ad71f55a1b672"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": "CLIENT_RANDOM E39B5BF4903C68684E8512FB2F60213E9EE843A0810B4982B607914D8092D482 95A5D39B02693BC1FB39254B179E9293007F6D37C66172B1EE4EF0D5E25CE1DABE878B6143DC3B266883E51A75E99DF9                                                   ",
+      "hardwareDesc": null,
+      "osDesc": "Linux 3.18.1-1-ARCH",
+      "userAppDesc": "Dumpcap (Wireshark) 1.99.1 (Git Rev Unknown from unknown)",
+      "interfaces": []
+    },
+    "packetCount": 3,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1422527998,"timestampNsec":578402281,"capturedLength":74,"originalLength":74,"comment":null,"data":"00000000000000000000000008004500003c470840004006f5b17f0000017f0000019d700ceafffb368c00000000a002aaaafe3000000204ffd70402080a282b71840000000001030307"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":1,"capturedLength":60,"originalLength":60,"comment":"appended","data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1700000001,"timestampNsec":0,"capturedLength":1514,"originalLength":9000,"comment":null,"dataSha256":"05954e40a82511cf2db9f9f9d66a6d12d7cda0dec98aa1792c6fa06e35eb9081"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  }
+}
