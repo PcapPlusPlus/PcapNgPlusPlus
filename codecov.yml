@@ -1,0 +1,14 @@
+# Coverage of legacy/LightPcapNg by the conformance suite, uploaded by the coverage job in .github/workflows/build.yml
+coverage:
+  status:
+    project:
+      default:
+        # Coverage must not drop below the base commit's
+        target: auto
+        threshold: 0%
+    # PRs add tests, not legacy code, so per-diff coverage has nothing to measure
+    patch: off
+
+codecov:
+  notify:
+    wait_for_ci: yes
