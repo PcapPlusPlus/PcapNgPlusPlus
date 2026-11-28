@@ -18,6 +18,13 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
 endif()
 
+# Same as PcapPlusPlus's PCAPPP_BUILD_COVERAGE: instruments everything for gcov, so gcovr can report on legacy/
+option(PCAPNGPP_BUILD_COVERAGE "Build with gcov coverage instrumentation" OFF)
+if(PCAPNGPP_BUILD_COVERAGE)
+  add_compile_options(--coverage)
+  add_link_options(--coverage)
+endif()
+
 # The legacy LightPcapNg reference implementation, built with PcapPlusPlus's own CMakeLists.txt so that the flags and
 # sources match what PcapPlusPlus ships. It defines the OBJECT library `light_pcapng` and the LIGHT_PCAPNG_ZSTD option.
 add_subdirectory(legacy)

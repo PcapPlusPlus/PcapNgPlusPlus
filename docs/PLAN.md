@@ -218,7 +218,7 @@ The suite builds behind its own CMake options and runs on every PR. Fuzzing, ben
 | Every PR, during migration | Differential tests, legacy vs new | Linux |
 | Nightly | Differential fuzzing, 30 minutes | Linux |
 | Nightly | Benchmarks, ratio gate | Linux |
-| Nightly | llvm-cov branch coverage for both backends, per file, published as an artifact | Linux |
+| Every PR | gcovr line and branch coverage of all of `legacy/LightPcapNg`, uploaded to Codecov (must not drop) and as an HTML artifact | Linux |
 
 ## Milestones
 
@@ -244,7 +244,8 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 
 ### M3: Measure the baseline
 
-- [ ] llvm-cov branch coverage on legacy; close gaps until over 95% of reachable branches are covered
+- [x] Coverage job: gcovr over all of `legacy/LightPcapNg`, uploaded to Codecov on every PR
+- [ ] Close coverage gaps until over 95% of reachable branches are covered
 - [ ] ASan, LSan and UBSan job; inputs where legacy crashes are recorded as `crash` goldens
 - [ ] Memory shim and legacy baselines committed
 - [ ] Benchmarks and legacy baseline numbers
@@ -299,3 +300,6 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 | 2026-11-28 | `pcapng-conformance-tool info` reports the backends and whether zstd is built in; pytest skips `.zst` cases without it, and `--regen-golden` refuses to run without it | Builds without zstd can't read `.zst` files, and goldens must never be recorded from one |
 | 2026-11-28 | `.gitattributes` keeps goldens and corpus files byte-exact | A Windows checkout with `core.autocrlf` would otherwise turn goldens into CRLF |
 | 2026-11-28 | Where `tv_sec` is 32-bit, a case is a strict expected failure only if its golden has a timestamp outside that range; goldens keep the correct 64-bit value and can't be regenerated on such a platform | Every other case still has to pass on 32-bit MinGW, the new code can fix the wraparound without a divergence entry, and a strict mark fails the run once a case starts passing |
+| 2026-11-28 | Coverage is measured with GCC `--coverage` and gcovr, and uploaded to Codecov | The same tools as PcapPlusPlus; Codecov collects, summarizes and visualizes the data |
+| 2026-11-28 | Coverage counts every compiled `legacy/LightPcapNg` file in full, with no exclusions | The number shown is the real one; about a third of the lines (in functions the 11 ext functions never call) can't be covered, so the reachable maximum is about 66% of lines and 71% of branches |
+| 2026-11-28 | One Linux coverage job (zstd on), not one per platform | Legacy has no platform-specific code paths, only min/max macro workarounds; platform differences in behavior are caught by the goldens on every platform |

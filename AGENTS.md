@@ -70,6 +70,17 @@ python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool 
 - **Multi-config generators** (Visual Studio) put the tool in `build/conformance/tool/Release/`.
 - **Regenerate goldens only from a Release build with zstd.** `--regen-golden` refuses to run otherwise. Review the golden diff before committing.
 
+To measure coverage of legacy, as the `coverage` CI job does (GCC; with clang, add `--gcov-executable "llvm-cov gcov"`, or `"xcrun llvm-cov gcov"` on macOS):
+
+```bash
+cmake -S . -B build-cov -DPCAPNGPP_BUILD_COVERAGE=ON -DLIGHT_PCAPNG_ZSTD=ON && cmake --build build-cov
+(cd conformance && python3 -m pytest --tool-path=../build-cov/conformance/tool/pcapng-conformance-tool)
+pip install gcovr==8.6
+gcovr --root . --object-directory build-cov --filter legacy/LightPcapNg/ --print-summary
+```
+
+The job uploads the report to Codecov and fails the Codecov check if coverage drops. Coverage counts all of `legacy/LightPcapNg`, with no exclusions. About a third of its lines are in functions the 11 ext functions never call, so the reachable maximum is about 66% of lines.
+
 `conformance/.clang-format` is a copy of PcapPlusPlus's config. Format with `clang-format` 19.1.6; `pip install clang-format==19.1.6` provides it.
 
 To sync `legacy/` with PcapPlusPlus:
