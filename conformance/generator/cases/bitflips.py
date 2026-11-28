@@ -1,14 +1,19 @@
 """Single-bit flips in every length field of a small file (M2).
 
-Only the low 12 bits are flipped, so a length grows by at most 4 KB. A block's leading length is never made smaller
-than its type's fixed fields: legacy reads those fields without checking the length, which reads past its buffer
-(undefined behavior, so not something a golden can pin down).
+Only the low 12 bits are flipped, so a length grows by at most 4 KB. Two kinds of flip are left out, because legacy's
+result for them differs between platforms, so no golden can pin it down:
+
+- a leading length smaller than the block type's fixed fields: legacy reads those fields without checking the
+  length, which reads past its buffer;
+- a flip after which legacy, reading on from where the damaged block left it, takes a garbage length and allocates
+  close to 4 GB (see legacy_model.py).
 """
 
 import struct
 
 from .. import builder as b
 from .. import pcapng_spec as spec
+from ..legacy_model import needs_unportable_allocation
 from . import case
 from .truncation import base
 
@@ -64,8 +69,10 @@ class RawFile:
 
 for _name, _offset, _fmt, _block_type in length_fields():
     for _bit in BITS:
-        _value = flipped(_offset, _fmt, _bit)[1]
+        _data, _value = flipped(_offset, _fmt, _bit)
         if _block_type is not None and _value < MIN_LENGTH[_block_type]:
+            continue
+        if needs_unportable_allocation(_data):
             continue
 
         @case(f"bitflips/{_name}_bit_{_bit:02d}", f"Bit {_bit} of {_name} flipped (now {_value})", valid=False)

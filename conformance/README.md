@@ -270,12 +270,12 @@ The families:
 | `blocks` | Other block types (copied raw), unknown blocks of 12 to 15 bytes, LightPcapNg's custom block, the EPB captured-length clamp, trailing junk |
 | `zstd` | Raw (stored) zstd frames with frame and block boundaries inside records, more data than legacy's decompression buffer, a truncated stream |
 | `truncation` | A small file cut at every byte |
-| `bitflips` | Each of the low 12 bits flipped in every length field of the same file |
+| `bitflips` | Each of the low 12 bits flipped in every length field of the same file, except flips that would make legacy allocate near 4 GB |
 
 Some malformed inputs aren't generated, because legacy's result for them isn't deterministic:
 
 - **A known block type too short for its fixed fields** (for example, an EPB under 32 bytes). Legacy reads past its buffer.
-- **A block length below 12, or far larger than the file.** Legacy computes a body length near 4 GB, and whether that allocation succeeds depends on the platform.
+- **A block length below 12, or far larger than the file.** Legacy computes a body length near 4 GB, and whether that allocation succeeds depends on the platform. This can also happen indirectly: after a damaged block, legacy may read a garbage length from the middle of the next one. `generator/legacy_model.py` models legacy's record framing, and `test_generator.py` checks that no case makes legacy allocate 1 GB or more.
 
 These belong in the sanitizer job.
 

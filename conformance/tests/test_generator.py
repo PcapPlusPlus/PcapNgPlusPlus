@@ -13,6 +13,7 @@ from generator import metamorphic
 from generator import pcapng_spec as spec
 from generator.__main__ import MANIFEST, generate
 from generator.cases import all_cases
+from generator.legacy_model import MAX_PORTABLE_ALLOCATION, largest_body_allocation
 
 VALID_CASES = [c for c in all_cases() if c.valid]
 
@@ -174,3 +175,20 @@ def test_length_overrides():
 
 def test_tsresol_conversion():
     assert [spec.tsresol_ticks_per_second(v) for v in (0, 6, 9, 128, 138)] == [1, 10**6, 10**9, 1, 1024]
+
+
+@pytest.mark.parametrize("case", [pytest.param(c, id=c.case_id) for c in all_cases() if not c.case_id.endswith(".zst")])
+def test_case_needs_no_unportable_allocation(case):
+    """No case may make legacy allocate a body of 1 GB or more: whether that succeeds differs between platforms (it
+    aborts the process on 32-bit MSVC), so the golden would only hold on some of them."""
+    largest = largest_body_allocation(case.build().to_bytes())
+    assert largest < MAX_PORTABLE_ALLOCATION, f"legacy would allocate {largest} bytes"
+
+
+def test_legacy_model_finds_the_win32_crash():
+    """The two bit flips that crashed on 32-bit MSVC in CI (SHB length 40 -> 44 and 40 -> 56) need a huge allocation."""
+    from generator.cases.bitflips import flipped, length_fields
+
+    offset = next(o for name, o, _, _ in length_fields() if name == "shb_length")
+    for bit in (2, 4):
+        assert largest_body_allocation(flipped(offset, "I", bit)[0]) >= MAX_PORTABLE_ALLOCATION
