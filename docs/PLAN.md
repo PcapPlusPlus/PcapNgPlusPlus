@@ -48,32 +48,35 @@ Blocks are dispatched in `parse_by_block_type()` (`light_pcapng.c:100`). It has 
 
 | Behavior | Where | Inputs | Status |
 | --- | --- | --- | --- |
-| SHB byte-order magic never checked (TODO in source) | `light_pcapng.c:112` | Big-endian files | Generator |
-| Options parsed recursively, one stack frame each | `__parse_options` | 10k–100k tiny options; reduced `ulimit -s` | Generator |
-| `if_tsresol`: below 128 is 10^n, 128 and above is 2^(n−128), in a `uint32_t` | `light_pcapng_ext.c:158` | 0, 6, 9, 10, 19, 20, 127, 128, 159, 160, 255, zero-length option | Partial: 6 and 9 (corpus, writer); the rest need the generator |
-| Timestamp seconds of 0 or above `MAXIMUM_PACKET_SECONDS_VALUE` zeroed | `light_get_next_packet` | Each boundary, at each resolution | Partial: each boundary at 10^9 (`write/timestamps/`); other resolutions need the generator |
-| `interface_id` ≥ interface count gives link type `0xFFFF` and timestamp 0 | `light_get_next_packet` | ID = count, `UINT32_MAX` | Generator |
-| IDBs beyond `MAX_SUPPORTED_INTERFACE_BLOCKS` dropped | `__append_interface_block_to_file_info` | Max, max+1, packets referencing dropped interfaces | Partial: `too_many_interfaces.pcapng` (read, append), `write/packets/link_types_33` |
-| IDBs after packets picked up by the read loop | `light_get_next_packet` | IDB between packets, IDB after last packet | Partial: append's new IDBs come after packets; IDB after the last packet needs the generator |
-| Second SHB does not reset the interface list (to verify) | `light_get_next_packet` | Two- and three-section files | Generator |
-| EPB and SPB captured length clamped (PcapPlusPlus patches #2180, #2320) | Parse and read paths | Captured length = original length, captured length larger than the block | Partial: SPB (`SpbOverlongOriginalLength.pcapng`); EPB needs the generator |
-| Option length validated against remaining space | `__parse_options` | Off by one in each direction, `max_len` ≤ 0 | Generator |
-| Raw copy of unknown blocks | `default` case | Block length 12, 13–15, not a multiple of 4, huge | Generator |
-| zstd I/O layer | `light_io.c`, zstd | Every block type compressed; frame boundary falling mid-block | Partial: one `.zst` corpus file and `write/compression/`; other block types and a frame boundary mid-block need the generator |
+| SHB byte-order magic never checked (TODO in source) | `light_pcapng.c:112` | Big-endian files | Covered: `sections/big_endian`, `sections/little_then_big_endian` |
+| Options parsed recursively, one stack frame each | `__parse_options` | 10k–100k tiny options; reduced `ulimit -s` | Covered: `options/many` (2000 options); a reduced `ulimit -s` is left for the sanitizer job |
+| `if_tsresol`: below 128 is 10^n, 128 and above is 2^(n−128), in a `uint32_t` | `light_pcapng_ext.c:158` | 0, 6, 9, 10, 19, 20, 127, 128, 159, 160, 255, zero-length option | Covered: `idb/tsresol_*` and `timestamps/tsresol_*` (0 to 255), zero-length and 2-byte options |
+| Timestamp seconds of 0 or above `MAXIMUM_PACKET_SECONDS_VALUE` zeroed | `light_get_next_packet` | Each boundary, at each resolution | Covered: `timestamps/boundaries_*` at five resolutions, `write/timestamps/` |
+| `interface_id` ≥ interface count gives link type `0xFFFF` and timestamp 0 | `light_get_next_packet` | ID = count, `UINT32_MAX` | Covered: `interfaces/id_equals_count`, `id_max`, `epb_without_idb`, `spb_without_idb` |
+| IDBs beyond `MAX_SUPPORTED_INTERFACE_BLOCKS` dropped | `__append_interface_block_to_file_info` | Max, max+1, packets referencing dropped interfaces | Covered: `interfaces/exactly_max`, `max_plus_one`, `forty`, `too_many_interfaces.pcapng` |
+| IDBs after packets picked up by the read loop | `light_get_next_packet` | IDB between packets, IDB after last packet | Covered: `interfaces/idb_between_packets`, `idb_after_last_packet`, `packet_before_its_idb` |
+| Second SHB does not reset the interface list (verified: a later section's packets on its interface 0 get the first section's interface 0, so the wrong link type) | `light_get_next_packet` | Two- and three-section files | Covered: `sections/two`, `three`, `second_without_idb` |
+| EPB and SPB captured length clamped (PcapPlusPlus patches #2180, #2320) | Parse and read paths | Captured length = original length, captured length larger than the block | Covered: `blocks/epb_captured_beyond_block*`, `blocks/spb_original_beyond_block`, `SpbOverlongOriginalLength.pcapng` |
+| Option length validated against remaining space | `__parse_options` | Off by one in each direction, `max_len` ≤ 0 | Covered: `options/*_length_too_long`, `*_length_0xffff`, `*_unpadded`, bit flips in option lengths |
+| Raw copy of unknown blocks | `default` case | Block length 12, 13–15, not a multiple of 4, huge | Covered: `blocks/*` (lengths 12 to 15 and 64 KB); lengths below 12 or beyond the file are left out (not deterministic) |
+| zstd I/O layer | `light_io.c`, zstd | Every block type compressed; frame boundary falling mid-block | Covered: `zstd/*` (raw frames, boundaries mid-record, larger than the decompression buffer, truncated) |
 | `read_all_interfaces` rewinds with `fseek()` on the raw file, which doesn't reset the zstd stream, so a compressed file yields no packets (found by the tool) | `light_pcapng_open_read`, `light_set_pos` | Every `.zst` case with `--all-interfaces` | Covered; recorded in the goldens |
-| `assert()` aborts on malformed input in Debug builds only; Release reads through | `light_read_record` | Goldens from Release; non-pcapng and truncated inputs | Goldens come from Release builds; the inputs need the generator |
+| `assert()` aborts on malformed input in Debug builds only; Release reads through | `light_read_record` | Goldens from Release; non-pcapng and truncated inputs | Covered: goldens come from Release; truncation and bit flips give the malformed inputs |
 | Timestamps after January 2038 wrap negative where `timespec::tv_sec` is 32-bit, such as 32-bit MinGW (found by CI) | `light_get_next_packet` | `pcapng-example.pcapng` (year 2061); expected failures on those platforms until the new code fixes it | Covered; recorded in the goldens |
 | Where `tv_sec` is 32-bit, the writer masks it to 32 unsigned bits, so a negative timestamp is written as a date in 2106 instead of being rejected (found by CI) | `light_write_packet` | `write/timestamps/negative`, `write/timestamps/beyond_max_writable`; expected failures on those platforms | Covered; recorded in the goldens |
 | A 65535-byte option (packet or file comment) overflows the heap: the length is padded to a multiple of 4 in a `uint16_t`, which wraps to 0, then 65535 bytes are copied into a 0-byte allocation (found by write cases) | `light_create_option` | `write/comments/length_65535`, `write/fileinfo/comment_length_65535` (recorded as crashes) | Covered; recorded in the goldens |
 | An uncompressed file whose name contains `.zst` hangs the reader: the zstd stream never ends (found by write cases) | `read_zstd_compressed` | `write/compression/level_0_zst_name`, `write/compression/level_negative` (recorded as hangs) | Covered; recorded in the goldens |
 | Appending to a `.zst` file writes uncompressed blocks after the zstd stream, so the file can no longer be read; the reader hangs (found by append cases) | `light_pcapng_open_append`, `light_open` | `append/.../pcapng-example.pcapng.zst/packets` and `/new_link_type` (recorded as hangs) | Covered; recorded in the goldens |
+| Legacy doesn't check `calloc()` for a block body. A garbage length (for example after a damaged block) asks for nearly 4 GB, and on 32-bit MSVC the failed allocation's null pointer goes to `fread()`, which aborts the process; elsewhere the read fails cleanly (found by CI) | `light_read_record` | Bit flips in the SHB, IDB and EPB lengths; left out of the corpus because the result differs between platforms (see `generator/legacy_model.py`), for the sanitizer job | Excluded |
+| With `read_all_interfaces`, a `.zst` file larger than the decompression buffer hangs instead of returning no packets: the same rewind bug (found by the generator) | `light_pcapng_open_read`, `read_zstd_compressed` | `generated/zstd/large.pcapng.zst` in `all_interfaces` mode (recorded as a hang) | Covered; recorded in the goldens |
 
 Measure branch coverage on both implementations. On legacy, it shows the corpus is complete. On the new code, it flags branches the rewrite added that the spec-driven cases don't reach yet.
 
-Coverage of the reachable legacy functions now, with the read, write and append cases: 90.3% of lines (754 of 835) and 68.8% of branches. Most of the remaining gap needs malformed and unusual files, which is the generator's job: the custom block `0xB16B00B5`, truncated and bad-length records, the EPB captured-length clamp, and a zstd frame boundary falling mid-block. Smaller items:
+Coverage of the reachable legacy functions now, with all of M2: 95.6% of lines (798 of 835) and 75.1% of branches (301 of 401), measured with zstd. The build without zstd covers 5 more lines (the `light_compression.c` fallbacks). What's left:
 
-- a coverage upload from a build without zstd, for the fallbacks in `light_compression.c`;
-- the write-script option for interfaces in the file info (see Open questions).
+- **8 lines** in `light_pcapng_open_write()`'s loop over interfaces already in the file info, which PcapPlusPlus never fills (see Open questions);
+- **about 23 lines that no input reaches:** branches of `light_get_block_info()` no caller uses, `light_add_option()`'s invalid-argument and "not a section header" paths, `light_open()`'s `"wb"` mode, null checks in context cleanup;
+- **branches that no input reaches,** mostly the second half of `light_read_record()`'s `bytesRead != size || (bytesRead == EOF && feof(...))` checks (short-circuited either way), null-argument checks, and `sizeof` comparisons that are constant on a platform.
 
 ### Axis 3: real-world corpus
 
@@ -133,7 +136,9 @@ conformance/
 ├── generator/              # Python: spec tables -> deterministic corpus + manifest
 │   ├── pcapng_spec.py      # block types and option codes
 │   ├── builder.py          # block/option writer: byte order, padding, length overrides
-│   └── cases/              # case families: shb, idb, epb, spb (M1); malformed families in M2
+│   ├── cases/              # case families: shb, idb, epb, spb, interfaces, sections, timestamps, options,
+│   │                       #   blocks, zstd, truncation, bitflips
+│   └── metamorphic.py      # base and variant files for test_metamorphic
 ├── corpus/
 │   ├── real_world/
 │   │   └── pcapplusplus/   # PcapPlusPlus's 23 test files, at their PcapPlusPlus paths
@@ -156,7 +161,7 @@ conformance/
 │   └── main.cpp            # read, write, append, info
 ├── third_party/nlohmann/   # json.hpp 3.11.3, vendored
 ├── memshim/                # (planned) LD_PRELOAD malloc counter (Linux)
-└── tests/                  # pytest: test_read, test_write, test_append, test_generator; differential planned
+└── tests/                  # pytest: test_read, test_write, test_append, test_metamorphic, test_generator
 bench/                      # (planned) Google Benchmark, both backends
 fuzz/                       # (planned) FuzzPcapNgDiff.cpp
 scripts/sync-legacy.sh      # copy legacy from a PcapPlusPlus commit, then regen goldens
@@ -209,8 +214,8 @@ The format is specified in `conformance/README.md`. Its main properties:
 - One subprocess per case and operation, so crashes and hangs are reported per case.
 - Test IDs look like `test_read[real_world/pcapplusplus/.../igmp.pcapng/default]`, `test_write[comments/length_255]` and `test_append[real_world/.../igmp.pcapng/packets]`.
 - Modules:
-  - existing: `test_read`, `test_write`, `test_append`, each with a stale-golden check, and `test_generator` (determinism, python-pcapng cross-check, exact bytes);
-  - planned: the metamorphic check in M2, and `test_differential` (skipped when legacy isn't built).
+  - existing: `test_read`, `test_write`, `test_append`, each with a stale-golden check; `test_metamorphic`; and `test_generator` (determinism, python-pcapng cross-check, exact bytes);
+  - planned: `test_differential` (skipped when legacy isn't built).
 - Options:
   - existing: `--tool-path`, `--backend`, `--regen-golden`, `--case-timeout` (default 10 seconds, 3 when the golden is a hang), `--generated-dir`;
   - planned: `--sanitizer-mode`.
@@ -267,7 +272,7 @@ The suite builds behind its own CMake options and runs on every PR, with coverag
 | When | Job | Platforms | Status |
 | --- | --- | --- | --- |
 | Every PR | Build, plus the pytest conformance suite | Linux (9 images, GCC and Intel icx), macOS, Visual Studio (Win32, x64, ARM64), MinGW, FreeBSD; Android and the macOS cross-compile build only | Running, legacy backend; the new backend in M4 |
-| Every PR | gcovr line and branch coverage of all of `legacy/LightPcapNg`, uploaded to Codecov (must not drop) and as an HTML artifact | Linux | Running |
+| Every PR | gcovr line and branch coverage of all of `legacy/LightPcapNg`, with and without zstd, uploaded to Codecov (must not drop) and as an HTML artifact | Linux | Running |
 | Every PR | `legacy/` matches PcapPlusPlus `master` (warns when a sync is needed) | Linux | Running |
 | Every PR | ASan, LSan and UBSan over the full corpus | Linux | Planned (M3) |
 | Every PR | Allocation profile against baselines | Linux | Planned (M3) |
@@ -290,9 +295,9 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 
 ### M2: Full corpus
 
-- [ ] Coverage upload from a build without zstd, for the `light_compression.c` fallbacks (≈ +5 reachable lines)
-- [ ] One case family per row of the Axis 2 table, with variants for the six options legacy interprets and a metamorphic test for options it ignores (≈ +37 reachable lines)
-- [ ] Truncation at every byte of a few small base files, and bit flips in length fields (≈ +9 reachable lines)
+- [x] Coverage upload from a build without zstd, for the `light_compression.c` fallbacks (+5 reachable lines)
+- [x] One case family per row of the Axis 2 table, with variants for the six options legacy interprets and a metamorphic test for options it ignores
+- [x] Truncation at every byte of a small base file, and bit flips in length fields (together with the families: +44 reachable lines)
 - [x] Write operation with `WriteScript` cases (56 cases: file info, packets, comments, timestamps, flush, compression, open failure)
 - [x] Append operation: 3 append scripts × every corpus file, plus a missing file (70 cases)
 
@@ -302,7 +307,7 @@ Moved out of M2: every spec block type and option code in every variant, and the
 
 - [x] Coverage job: gcovr over all of `legacy/LightPcapNg`, uploaded to Codecov on every PR
 - [ ] Second coverage upload from a build without zstd, for the `light_compression.c` fallbacks
-- [ ] Every reachable line and branch covered or listed with a reason (now 90.3% of lines and 69.6% of branches; most of the gap needs the M2 families)
+- [ ] Every reachable line and branch covered or listed with a reason (now 95.6% of lines and 75.1% of branches; the remaining gap is listed under Axis 2)
 - [x] Inputs where legacy crashes or hangs are recorded as `crash` and `hang` goldens
 - [ ] ASan, LSan and UBSan job over the full corpus
 - [ ] Memory shim and legacy baselines committed
@@ -372,3 +377,7 @@ Moved out of M2: every spec block type and option code in every variant, and the
 | 2026-11-28 | Append runs over the committed corpus only, not the generated cases | `test_read` already parses the generated files; appending to each would multiply goldens without reaching new code |
 | 2026-11-28 | M2 trimmed to the Axis 2 families (with interpreted-option variants and a metamorphic test), truncation and bit flips, and a zstd-off coverage upload; full spec tables and the real-world corpus move to M4's fuzzing | They add almost no coverage; the differential fuzzer covers their behavioral risk more cheaply |
 | 2026-11-28 | Success criterion: every reachable line and branch covered or explained, instead of "over 95% of reachable branches" | About 67 reachable branches can't be reached by any input, which caps branch coverage near 83% |
+| 2026-11-28 | Generated zstd files use raw (stored) zstd blocks, framed by the generator | No compression library is needed, the bytes don't depend on a zstd version, and frame and block boundaries can be placed anywhere |
+| 2026-11-28 | Malformed inputs whose legacy result isn't deterministic aren't generated: known block types too short for their fixed fields, and block lengths below 12 or far beyond the file | Legacy reads past its buffer, or makes a near-4 GB allocation whose success depends on the platform; a golden can't pin either down, so they're left for the sanitizer job |
+| 2026-11-28 | The metamorphic test adds every uninterpreted option code, before and after the interpreted ones, and needs no goldens | It checks the one behavior that matters for ignored options, that they change nothing, without a golden per code and variant |
+| 2026-11-28 | Cases that make legacy allocate a block body of 1 GB or more are excluded, using a model of legacy's record framing that a generator test applies to every case | Whether the allocation succeeds differs between platforms (32-bit MSVC aborts), so a golden can only hold on some of them; CI found two such bit flips |

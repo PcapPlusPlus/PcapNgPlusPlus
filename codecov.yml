@@ -11,6 +11,8 @@ coverage:
 
 codecov:
   notify:
+    # Both coverage jobs (with and without zstd) upload; report once both have arrived
+    after_n_builds: 2
     wait_for_ci: yes
 
 # The conformance tool and its vendored code are test infrastructure, not code under test

@@ -36,7 +36,12 @@ There are three test functions that compare with goldens:
 - `test_write` runs once per write script, with IDs like `test_write[comments/length_255]`.
 - `test_append` runs once per committed corpus file and append script, with IDs like `test_append[real_world/.../igmp.pcapng/packets]`. It appends to a copy of the file, because `light_pcapng_open_append()` parses the whole file first and so reaches the same parser paths as reading. The generated cases are left out: `test_read` already parses them, and appending to each would only multiply goldens. `test_append_to_missing_file` covers a file that doesn't exist.
 
-`test_generator.py` checks the generator itself and needs no tool; see [Generated cases](#generated-cases).
+Two more test modules:
+
+- `test_metamorphic.py` adds each option legacy ignores to a valid file and checks the dump doesn't change; it needs no goldens. See [Generated cases](#generated-cases).
+- `test_generator.py` checks the generator itself and needs no tool.
+
+`test_read_missing_file` reads a file that doesn't exist, under a `.pcapng` and a `.pcapng.zst` name.
 
 Each run:
 
@@ -250,10 +255,34 @@ python3 -m generator --out /tmp/generated    # every case, plus manifest.json wi
 | --- | --- |
 | `pcapng_spec.py` | Block types and option codes |
 | `builder.py` | Writes blocks and options byte by byte. Lengths and padding are computed, and each can be overridden for malformed files: an option's length and padding, a block's two length fields, whether `opt_endofopt` is written, extra bytes before the trailing length. Byte order is per section. |
-| `cases/` | One module per family (`shb`, `idb`, `epb`, `spb`). Each case is a function returning a `builder.File`, registered with `@case("<family>/<name>", "<description>", valid=True)`; its case ID is `generated/<family>/<name>.pcapng`. |
+| `cases/` | One module per family. Each case is a function returning a `builder.File`, registered with `@case("<family>/<name>", "<description>", valid=True)`; its case ID is `generated/<family>/<name>.pcapng`, or `.pcapng.zst` for zstd cases. |
+| `metamorphic.py` | The base and variant files for `test_metamorphic.py` |
+
+The families:
+
+| Family | What it covers |
+| --- | --- |
+| `shb`, `idb`, `epb`, `spb` | Valid files for each block type: options, padding, link types, `if_tsresol`, lengths |
+| `interfaces` | Interface IDs out of range, packets without an IDB, 32, 33 and 40 IDBs, IDBs between and after packets |
+| `sections` | Two and three sections, a section without an IDB, big-endian sections |
+| `timestamps` | `if_tsresol` values that overflow legacy's `uint32_t`, malformed `if_tsresol` options, each seconds boundary at five resolutions |
+| `options` | For each option legacy interprets: no `opt_endofopt`, a length 1 too long, length 0xFFFF, no padding, repeated, after an unknown option. Also a zero-length option, junk after `opt_endofopt`, 2000 options, and options on the wrong block. |
+| `blocks` | Other block types (copied raw), unknown blocks of 12 to 15 bytes, LightPcapNg's custom block, the EPB captured-length clamp, trailing junk |
+| `zstd` | Raw (stored) zstd frames with frame and block boundaries inside records, more data than legacy's decompression buffer, a truncated stream |
+| `truncation` | A small file cut at every byte |
+| `bitflips` | Each of the low 12 bits flipped in every length field of the same file, except flips that would make legacy allocate near 4 GB |
+
+Some malformed inputs aren't generated, because legacy's result for them isn't deterministic:
+
+- **A known block type too short for its fixed fields** (for example, an EPB under 32 bytes). Legacy reads past its buffer.
+- **A block length below 12, or far larger than the file.** Legacy computes a body length near 4 GB, and whether that allocation succeeds depends on the platform. This can also happen indirectly: after a damaged block, legacy may read a garbage length from the middle of the next one. `generator/legacy_model.py` models legacy's record framing, and `test_generator.py` checks that no case makes legacy allocate 1 GB or more.
+
+These belong in the sanitizer job.
+
+The metamorphic test takes every option code defined for SHB, IDB and EPB that legacy doesn't interpret, plus the four custom option codes. It adds each one to a valid base file, before and then after the options legacy does read, and checks that the dump is unchanged. Zero-length values are left out, because legacy stops reading options at the first one (`options/empty_option_ends_list`).
 
 `test_generator.py` guards against generator bugs, which would otherwise go into the goldens unnoticed:
 
 - **Deterministic:** generating twice gives identical files and manifests.
-- **Independent parse:** every case marked `valid` is read with [python-pcapng](https://github.com/rshk/python-pcapng). It must find exactly the blocks, fields and raw option values the case built. Malformed cases skip this.
+- **Independent parse:** every case marked `valid`, and every metamorphic file, is read with [python-pcapng](https://github.com/rshk/python-pcapng). It must find exactly the blocks, fields and raw option values the case built. For zstd cases, the pcapng bytes are checked before compression. Malformed cases skip this. So do metamorphic files with `if_IPv6addr`, which python-pcapng 2.1.1 can't decode.
 - **Exact bytes:** the builder's output for options, SHB (in both byte orders), EPB and SPB is compared with layouts written out by hand from the spec, including padding and length overrides. python-pcapng tolerates some padding mistakes, so this catches what it misses.

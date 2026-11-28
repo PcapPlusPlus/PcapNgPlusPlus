@@ -3,16 +3,22 @@ independent parser (python-pcapng) exactly as the case built it. A builder bug w
 into the goldens, since a golden records whatever legacy does with the file."""
 
 import io
+import sys
 
 import pcapng
 import pytest
 
 from generator import builder as b
+from generator import metamorphic
 from generator import pcapng_spec as spec
 from generator.__main__ import MANIFEST, generate
 from generator.cases import all_cases
+from generator.legacy_model import MAX_PORTABLE_ALLOCATION, largest_body_allocation
 
 VALID_CASES = [c for c in all_cases() if c.valid]
+
+# python-pcapng parses options recursively too, and options/many has 2000 of them
+sys.setrecursionlimit(max(sys.getrecursionlimit(), 10000))
 
 
 def test_generator_is_deterministic(tmp_path):
@@ -42,29 +48,60 @@ def expected_fields(block):
         }
     if block.type == spec.SPB:
         return {"packet_len": block.field("original_length"), "packet_data": block.data}
-    raise AssertionError(f"no cross-check for block type {block.type:#x}")
+    return {}  # Other block types: only the type and options are compared
+
+
+def raw_option_values(parsed, code):
+    """The raw values of option `code` in a python-pcapng block. get_all_raw() accepts only the codes its schema defines
+    for the block type; for other codes, python-pcapng keeps the raw bytes in `data`."""
+    try:
+        return list(parsed.options.get_all_raw(code))
+    except KeyError:
+        return list(parsed.options.data[code])
 
 
 @pytest.mark.parametrize("case", [pytest.param(c, id=c.case_id) for c in VALID_CASES])
 def test_valid_case_parses_as_built(case):
-    built = case.build()
+    check_parses_as_built(case.build())
+
+
+# Options python-pcapng 2.1.1 can't decode: its if_IPv6addr decoder passes an int to struct.unpack()
+PYTHON_PCAPNG_CANT_DECODE = {("idb", spec.IF_IPV6ADDR)}
+
+
+@pytest.mark.parametrize("pair", [pytest.param(p, id=p.pair_id) for p in metamorphic.pairs()])
+def test_metamorphic_variant_parses_as_built(pair):
+    """The metamorphic test's files must be valid too, or a change in the dump might come from a broken file."""
+    if (pair.block_name, pair.code) in PYTHON_PCAPNG_CANT_DECODE:
+        pytest.skip("python-pcapng 2.1.1 can't decode this option (a bug in its decoder)")
+    check_parses_as_built(pair.base)
+    check_parses_as_built(pair.variant)
+
+
+def check_parses_as_built(built):
     expected_blocks = [(block, section.byte_order) for section in built.sections for block in section.blocks]
-    parsed_blocks = list(pcapng.FileScanner(io.BytesIO(built.to_bytes())))
+    parsed_blocks = list(pcapng.FileScanner(io.BytesIO(built.pcapng_bytes())))
     assert len(parsed_blocks) == len(expected_blocks)
 
     for index, ((block, order), parsed) in enumerate(zip(expected_blocks, parsed_blocks)):
         where = f"block {index} ({type(parsed).__name__})"
+        if isinstance(parsed, pcapng.blocks.UnknownBlock):
+            # python-pcapng keeps a block it doesn't know as its type and raw body
+            assert parsed.block_type == block.type, where
+            assert parsed.data == block.body_bytes(order), where
+            continue
         assert parsed.magic_number == block.type, where
         for name, value in expected_fields(block).items():
             assert getattr(parsed, name) == value, f"{where}: {name}"
-        if hasattr(parsed, "options"):
+        # Only these carry options here; hasattr() on python-pcapng's UnknownBlock recurses forever
+        if block.type in (spec.SHB, spec.IDB, spec.EPB):
             expected_options = {}
             for option in block.options:
                 expected_options.setdefault(option.code, []).append(option.value_bytes(order))
             parsed_codes = {code for code, values in parsed.options.data.items() if values}
             assert parsed_codes == set(expected_options), f"{where}: option codes"
             for code, values in expected_options.items():
-                assert parsed.options.get_all_raw(code) == values, f"{where}: option {code}"
+                assert raw_option_values(parsed, code) == values, f"{where}: option {code}"
 
 
 # ---- The builder's exact bytes, against layouts written out by hand from the spec ----
@@ -138,3 +175,20 @@ def test_length_overrides():
 
 def test_tsresol_conversion():
     assert [spec.tsresol_ticks_per_second(v) for v in (0, 6, 9, 128, 138)] == [1, 10**6, 10**9, 1, 1024]
+
+
+@pytest.mark.parametrize("case", [pytest.param(c, id=c.case_id) for c in all_cases() if not c.case_id.endswith(".zst")])
+def test_case_needs_no_unportable_allocation(case):
+    """No case may make legacy allocate a body of 1 GB or more: whether that succeeds differs between platforms (it
+    aborts the process on 32-bit MSVC), so the golden would only hold on some of them."""
+    largest = largest_body_allocation(case.build().to_bytes())
+    assert largest < MAX_PORTABLE_ALLOCATION, f"legacy would allocate {largest} bytes"
+
+
+def test_legacy_model_finds_the_win32_crash():
+    """The two bit flips that crashed on 32-bit MSVC in CI (SHB length 40 -> 44 and 40 -> 56) need a huge allocation."""
+    from generator.cases.bitflips import flipped, length_fields
+
+    offset = next(o for name, o, _, _ in length_fields() if name == "shb_length")
+    for bit in (2, 4):
+        assert largest_body_allocation(flipped(offset, "I", bit)[0]) >= MAX_PORTABLE_ALLOCATION

@@ -273,18 +273,23 @@ jobs:
             cd conformance
             python -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool
 
-  # Legacy behaves the same on every platform (its only #ifs are min/max macro workarounds), so one Linux build with
-  # zstd measures all of it. Like PcapPlusPlus: GCC --coverage, gcovr, Codecov.
+  # Legacy behaves the same on every platform (its only #ifs are min/max macro workarounds), so Linux builds measure
+  # all of it. Like PcapPlusPlus: GCC --coverage, gcovr, Codecov. The build without zstd covers the fallbacks in
+  # light_compression.c; Codecov merges the two uploads.
   coverage:
-    name: coverage (legacy/LightPcapNg)
+    name: coverage (legacy/LightPcapNg, zstd ${{ matrix.config-zstd }})
     runs-on: ubuntu-latest
     container: seladb/ubuntu2604
+    strategy:
+      fail-fast: false
+      matrix:
+        config-zstd: [ON, OFF]
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Configure
-        run: cmake -DPCAPNGPP_BUILD_COVERAGE=ON -DLIGHT_PCAPNG_ZSTD=ON -S . -B "$BUILD_DIR"
+        run: cmake -DPCAPNGPP_BUILD_COVERAGE=ON -DLIGHT_PCAPNG_ZSTD=${{ matrix.config-zstd }} -S . -B "$BUILD_DIR"
 
       - name: Build
         run: cmake --build "$BUILD_DIR" -j
@@ -304,7 +309,7 @@ jobs:
           gcovr --root . --object-directory "$BUILD_DIR" --filter legacy/LightPcapNg/ \
             --print-summary --txt coverage.txt --cobertura coverage.xml --html-details coverage-html/index.html
           {
-            echo '## LightPcapNg coverage'
+            echo '## LightPcapNg coverage (zstd ${{ matrix.config-zstd }})'
             echo '```'
             cat coverage.txt
             echo '```'
@@ -313,7 +318,7 @@ jobs:
       - name: Upload coverage report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: coverage-html
+          name: coverage-html-zstd-${{ matrix.config-zstd }}
           path: coverage-html/
 
       - name: Upload coverage to Codecov
@@ -323,7 +328,7 @@ jobs:
           # Upload only gcovr's report; the action's own search and gcov plugin would add the tool and system headers
           disable_search: true
           plugins: noop
-          flags: legacy
+          flags: legacy,zstd-${{ matrix.config-zstd }}
           fail_ci_if_error: false
           verbose: true
         env:

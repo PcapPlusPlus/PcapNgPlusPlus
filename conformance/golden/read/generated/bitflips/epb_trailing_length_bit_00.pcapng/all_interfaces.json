@@ -1,0 +1,10 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": true,
+  "opened": false,
+  "fileInfo": null,
+  "packetCount": 0,
+  "packets": [],
+  "interfacesAfterRead": null
+}

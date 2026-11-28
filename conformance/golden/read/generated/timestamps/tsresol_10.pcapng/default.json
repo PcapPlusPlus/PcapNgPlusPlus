@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": false,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": []
+  },
+  "packetCount": 5,
+  "packets": [
+    {"interfaceId":0,"linkType":1,"timestampSec":12056178321,"timestampNsec":150144357,"capturedLength":16,"originalLength":16,"comment":null,"data":"000102030405060708090a0b0c0d0e0f"},
+    {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":16,"originalLength":16,"comment":null,"data":"0102030405060708090a0b0c0d0e0f10"},
+    {"interfaceId":0,"linkType":1,"timestampSec":7,"timestampNsec":91869599,"capturedLength":16,"originalLength":16,"comment":null,"data":"02030405060708090a0b0c0d0e0f1011"},
+    {"interfaceId":0,"linkType":1,"timestampSec":7,"timestampNsec":91869599,"capturedLength":16,"originalLength":16,"comment":null,"data":"030405060708090a0b0c0d0e0f101112"},
+    {"interfaceId":0,"linkType":1,"timestampSec":13082190350,"timestampNsec":214982094,"capturedLength":16,"originalLength":16,"comment":null,"data":"0405060708090a0b0c0d0e0f10111213"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":1,"ticksPerSecond":1410065408}
+  ]
+}
