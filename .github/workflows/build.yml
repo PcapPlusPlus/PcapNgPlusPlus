@@ -274,7 +274,7 @@ jobs:
             python -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool
 
   # Legacy behaves the same on every platform (its only #ifs are min/max macro workarounds), so Linux builds measure
-  # all of it. Like PcapPlusPlus: GCC --coverage, gcovr, Codecov. The build without zstd covers the fallbacks in
+  # all of it. Coverage counts the code the 11 ext functions can reach (see conformance/coverage/). Like PcapPlusPlus: GCC --coverage, gcovr, Codecov. The build without zstd covers the fallbacks in
   # light_compression.c; Codecov merges the two uploads.
   coverage:
     name: coverage (legacy/LightPcapNg, zstd ${{ matrix.config-zstd }})
@@ -306,8 +306,12 @@ jobs:
         run: |
           . .venv/bin/activate
           mkdir -p coverage-html
-          gcovr --root . --object-directory "$BUILD_DIR" --filter legacy/LightPcapNg/ \
-            --print-summary --txt coverage.txt --cobertura coverage.xml --html-details coverage-html/index.html
+          # conformance/coverage/gcovr.cfg excludes the legacy code the 11 ext functions can't reach
+          gcovr --config conformance/coverage/gcovr.cfg --root . --object-directory "$BUILD_DIR" \
+            --print-summary --txt coverage.txt --cobertura coverage.xml --json coverage.json \
+            --html-details coverage-html/index.html
+          # gcovr silently skips exclude-function before GCC 14; fail rather than report unreachable code
+          python3 conformance/coverage/check_report.py coverage.json
           {
             echo '## LightPcapNg coverage (zstd ${{ matrix.config-zstd }})'
             echo '```'

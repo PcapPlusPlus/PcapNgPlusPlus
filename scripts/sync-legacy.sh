@@ -95,4 +95,7 @@ if [[ $REGEN -eq 1 ]]; then
   (cd "$ROOT/conformance" && "${PYTHON:-python3}" -m pytest -q --tool-path="$TOOL" --regen-golden)
 fi
 
-echo "Review the changes, then stage them with: git add -f legacy conformance/golden"
+# The coverage exclusions follow from what the ext functions can reach, which a sync can change
+"${PYTHON:-python3}" "$ROOT/conformance/coverage/reachability.py" --write-config
+
+echo "Review the changes, then stage them with: git add -f legacy conformance/golden conformance/coverage"

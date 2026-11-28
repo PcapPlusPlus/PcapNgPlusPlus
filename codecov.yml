@@ -15,6 +15,11 @@ codecov:
     after_n_builds: 2
     wait_for_ci: yes
 
-# The conformance tool and its vendored code are test infrastructure, not code under test
+# The conformance tool and its vendored code are test infrastructure, not code under test. The three legacy files
+# have no code the 11 ext functions can reach (conformance/coverage/gcovr.cfg also leaves out the unreachable
+# functions in the other files, before upload).
 ignore:
   - "conformance/**"
+  - "legacy/LightPcapNg/src/light_advanced.c"
+  - "legacy/LightPcapNg/src/light_io.c"
+  - "legacy/LightPcapNg/src/light_pcapng_cont.c"
