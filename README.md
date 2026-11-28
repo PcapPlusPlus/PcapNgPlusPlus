@@ -28,7 +28,12 @@ Details are in [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Building
 
-Build instructions will be added as the build system lands in milestone M1.
+```bash
+cmake -S . -B build          # add -DLIGHT_PCAPNG_ZSTD=ON for zstd support
+cmake --build build
+```
+
+Only the legacy LightPcapNg library builds for now.
 
 ## Contributing
 
