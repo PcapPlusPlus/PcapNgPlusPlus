@@ -77,10 +77,16 @@ To measure coverage of legacy, as the `coverage` CI job does (GCC; with clang, a
 cmake -S . -B build-cov -DPCAPNGPP_BUILD_COVERAGE=ON -DLIGHT_PCAPNG_ZSTD=ON && cmake --build build-cov
 (cd conformance && python3 -m pytest --tool-path=../build-cov/conformance/tool/pcapng-conformance-tool)
 pip install gcovr==8.6
-gcovr --root . --object-directory build-cov --filter legacy/LightPcapNg/ --print-summary
+gcovr --config conformance/coverage/gcovr.cfg --root . --object-directory build-cov --print-summary
 ```
 
-The job uploads the report to Codecov and fails the Codecov check if coverage drops. Coverage counts all of `legacy/LightPcapNg`, with no exclusions. About a third of its lines are in functions the 11 ext functions never call, so the reachable maximum is about 66% of lines.
+Coverage counts the legacy code the 11 ext functions can reach. `conformance/coverage/gcovr.cfg` excludes the rest: 3 files with no reachable function, and the unreachable functions in the other files. `conformance/coverage/reachability.py` generates the config from a static analysis of the sources:
+
+- **After a legacy sync**, regenerate it with `python3 conformance/coverage/reachability.py --write-config`; `scripts/sync-legacy.sh` does this.
+- **`tests/test_coverage_config.py`** fails if the config is out of date.
+- **`exclude-function` needs GCC 14 or newer.** With clang, or an older GCC, gcovr silently ignores it, so the coverage job runs `conformance/coverage/check_report.py` to fail in that case.
+
+The job uploads the report to Codecov and fails the Codecov check if coverage drops.
 
 `conformance/.clang-format` is a copy of PcapPlusPlus's config. Format with `clang-format` 19.1.6; `pip install clang-format==19.1.6` provides it.
 

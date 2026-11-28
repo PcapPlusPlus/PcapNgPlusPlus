@@ -21,7 +21,7 @@ LightPcapNg's own `src/tests/` is out of scope too. `light_manipulate.c` is only
 **Success criteria**
 
 - Every case matches the golden output, except cases listed in `divergences.yaml`.
-- Every line and branch of the legacy code reachable from the 11 functions is covered, or listed with the reason no input reaches it, such as null-argument checks the ext functions never trigger, allocation failures, or `sizeof` comparisons that are constant on a platform. About 83% of reachable branches can be covered at most, so a percentage target would be unreachable. Codecov shows coverage of all of LightPcapNg; the reachable functions are about 66% of its lines.
+- Every line and branch of the legacy code reachable from the 11 functions is covered, or listed with the reason no input reaches it, such as null-argument checks the ext functions never trigger, allocation failures, or `sizeof` comparisons that are constant on a platform. About 83% of reachable branches can be covered at most, so a percentage target would be unreachable. Coverage, in CI and on Codecov, counts only the reachable code (`conformance/coverage/gcovr.cfg`).
 - Zero leaks and zero sanitizer reports on the full corpus, for both implementations.
 - New code's peak heap is at most 110% of legacy's, per case; allocations per packet in steady state are at most legacy's.
 - New code's throughput is at least 95% of legacy's on every benchmark.
@@ -160,6 +160,7 @@ conformance/
 │   ├── Sha256.cpp
 │   └── main.cpp            # read, write, append, info
 ├── third_party/nlohmann/   # json.hpp 3.11.3, vendored
+├── coverage/               # reachability.py (static analysis) -> gcovr.cfg exclusions; check_report.py
 ├── memshim/                # (planned) LD_PRELOAD malloc counter (Linux)
 └── tests/                  # pytest: test_read, test_write, test_append, test_metamorphic, test_generator
 bench/                      # (planned) Google Benchmark, both backends
@@ -272,7 +273,7 @@ The suite builds behind its own CMake options and runs on every PR, with coverag
 | When | Job | Platforms | Status |
 | --- | --- | --- | --- |
 | Every PR | Build, plus the pytest conformance suite | Linux (9 images, GCC and Intel icx), macOS, Visual Studio (Win32, x64, ARM64), MinGW, FreeBSD; Android and the macOS cross-compile build only | Running, legacy backend; the new backend in M4 |
-| Every PR | gcovr line and branch coverage of all of `legacy/LightPcapNg`, with and without zstd, uploaded to Codecov (must not drop) and as an HTML artifact | Linux | Running |
+| Every PR | gcovr line and branch coverage of the legacy code reachable from the 11 ext functions, with and without zstd, uploaded to Codecov (must not drop) and as an HTML artifact | Linux | Running |
 | Every PR | `legacy/` matches PcapPlusPlus `master` (warns when a sync is needed) | Linux | Running |
 | Every PR | ASan, LSan and UBSan over the full corpus | Linux | Planned (M3) |
 | Every PR | Allocation profile against baselines | Linux | Planned (M3) |
@@ -305,7 +306,7 @@ Moved out of M2: every spec block type and option code in every variant, and the
 
 ### M3: Measure the baseline
 
-- [x] Coverage job: gcovr over all of `legacy/LightPcapNg`, uploaded to Codecov on every PR
+- [x] Coverage job: gcovr over the reachable legacy code, uploaded to Codecov on every PR
 - [ ] Second coverage upload from a build without zstd, for the `light_compression.c` fallbacks
 - [ ] Every reachable line and branch covered or listed with a reason (now 95.6% of lines and 75.1% of branches; the remaining gap is listed under Axis 2)
 - [x] Inputs where legacy crashes or hangs are recorded as `crash` and `hang` goldens
@@ -366,7 +367,7 @@ Moved out of M2: every spec block type and option code in every variant, and the
 | 2026-11-28 | `.gitattributes` keeps goldens and corpus files byte-exact | A Windows checkout with `core.autocrlf` would otherwise turn goldens into CRLF |
 | 2026-11-28 | Where `tv_sec` is 32-bit, a case is a strict expected failure only if its golden has a timestamp outside that range; goldens keep the correct 64-bit value and can't be regenerated on such a platform | Every other case still has to pass on 32-bit MinGW, the new code can fix the wraparound without a divergence entry, and a strict mark fails the run once a case starts passing |
 | 2026-11-28 | Coverage is measured with GCC `--coverage` and gcovr, and uploaded to Codecov | The same tools as PcapPlusPlus; Codecov collects, summarizes and visualizes the data |
-| 2026-11-28 | Coverage counts every compiled `legacy/LightPcapNg` file in full, with no exclusions | The number shown is the real one; about a third of the lines (in functions the 11 ext functions never call) can't be covered, so the reachable maximum is about 66% of lines and 71% of branches |
+| 2026-11-28 | Coverage counts every compiled `legacy/LightPcapNg` file in full, with no exclusions (superseded below: unreachable code is now excluded) | The number shown is the real one; about a third of the lines (in functions the 11 ext functions never call) can't be covered, so the reachable maximum is about 66% of lines and 71% of branches |
 | 2026-11-28 | One Linux coverage job (zstd on), not one per platform | Legacy has no platform-specific code paths, only min/max macro workarounds; platform differences in behavior are caught by the goldens on every platform |
 | 2026-11-28 | Write cases are JSON scripts in `conformance/cases/write/`, run by a `write` tool operation that fills the packet header as PcapPlusPlus does | Write cases are data, not code; filling the header the same way reaches the same legacy paths PcapPlusPlus does |
 | 2026-11-28 | A write dump records the written file's size and sha256 only when uncompressed, plus a read of the file back | Compressed bytes depend on the zstd version, which differs across platforms; the read checks the content either way. Recording the sha256 separately leaves the open byte-identical-writer question open |
@@ -381,3 +382,4 @@ Moved out of M2: every spec block type and option code in every variant, and the
 | 2026-11-28 | Malformed inputs whose legacy result isn't deterministic aren't generated: known block types too short for their fixed fields, and block lengths below 12 or far beyond the file | Legacy reads past its buffer, or makes a near-4 GB allocation whose success depends on the platform; a golden can't pin either down, so they're left for the sanitizer job |
 | 2026-11-28 | The metamorphic test adds every uninterpreted option code, before and after the interpreted ones, and needs no goldens | It checks the one behavior that matters for ignored options, that they change nothing, without a golden per code and variant |
 | 2026-11-28 | Cases that make legacy allocate a block body of 1 GB or more are excluded, using a model of legacy's record framing that a generator test applies to every case | Whether the allocation succeeds differs between platforms (32-bit MSVC aborts), so a golden can only hold on some of them; CI found two such bit flips |
+| 2026-11-28 | Coverage excludes the legacy code the 11 ext functions can't reach: 3 whole files, and 28 functions in the others, with gcovr's `exclude` and `exclude-function`. This replaces the earlier decision to count all of LightPcapNg. | A third of LightPcapNg can't be reached through the API PcapPlusPlus uses, so the full total topped out near 60% and said little about the suite. The list comes from a static reachability analysis, and a test keeps it in sync with the sources, so reachable code is never excluded. |
