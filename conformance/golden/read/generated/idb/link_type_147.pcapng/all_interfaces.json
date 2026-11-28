@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": true,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": [
+      {"linkType":147,"ticksPerSecond":1000000}
+    ]
+  },
+  "packetCount": 2,
+  "packets": [
+    {"interfaceId":0,"linkType":147,"timestampSec":1700000000,"timestampNsec":250000000,"capturedLength":60,"originalLength":60,"comment":null,"data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b"},
+    {"interfaceId":0,"linkType":147,"timestampSec":1700000001,"timestampNsec":750000000,"capturedLength":60,"originalLength":60,"comment":null,"data":"0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":147,"ticksPerSecond":1000000},
+    {"linkType":147,"ticksPerSecond":1000000}
+  ]
+}

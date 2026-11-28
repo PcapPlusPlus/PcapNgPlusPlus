@@ -1,14 +1,20 @@
 # Conformance suite
 
-This directory holds the suite described in [`docs/PLAN.md`](../docs/PLAN.md): a corpus of pcapng files, goldens recorded from legacy, a tool that dumps what a backend exposes, and a pytest runner that compares the two. The corpus generator comes later.
+This directory holds the suite described in [`docs/PLAN.md`](../docs/PLAN.md):
+
+- a corpus of pcapng files, committed and generated;
+- goldens recorded from legacy;
+- a tool that dumps what a backend exposes;
+- a pytest runner that compares the two.
 
 | Path | What |
 | --- | --- |
 | `corpus/` | Input files. Each file is a case; its case ID is its path under `corpus/`. |
 | `corpus/real_world/pcapplusplus/` | Every `.pcapng`/`.zst` file in PcapPlusPlus (see its `SOURCE.md`) |
+| `generator/` | Writes generated pcapng files from the spec; see [Generated cases](#generated-cases). The files aren't committed. |
 | `cases/write/` | Write scripts. Each `.json` file is a case; its case ID is its path under `cases/write/`, without `.json`. |
 | `cases/append/` | Append scripts. Each one runs against every corpus file. |
-| `golden/read/<case ID>/<mode>.json` | The legacy dump of each corpus file, per open mode (`default`, `all_interfaces`). Generated; never edit by hand. |
+| `golden/read/<case ID>/<mode>.json` | The legacy dump of each corpus file, committed or generated, per open mode (`default`, `all_interfaces`). Generated; never edit by hand. |
 | `golden/write/<case ID>.json` | The legacy dump of each write script. Generated; never edit by hand. |
 | `golden/append/<corpus case ID>/<script>.json` | The legacy dump of each append script on each corpus file, plus `missing_file.json`. Generated; never edit by hand. |
 | `tests/` | The pytest suite |
@@ -24,11 +30,13 @@ cd conformance
 python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool
 ```
 
-There are three test functions:
+There are three test functions that compare with goldens:
 
-- `test_read` runs once per corpus file and open mode, with IDs like `test_read[real_world/pcapplusplus/Tests/Packet++Test/PacketExamples/igmp.pcapng/default]`.
+- `test_read` runs once per corpus file and open mode, with IDs like `test_read[real_world/pcapplusplus/Tests/Packet++Test/PacketExamples/igmp.pcapng/default]`. The corpus includes the generated cases, such as `test_read[generated/idb/tsresol_9.pcapng/default]`.
 - `test_write` runs once per write script, with IDs like `test_write[comments/length_255]`.
-- `test_append` runs once per corpus file and append script, with IDs like `test_append[real_world/.../igmp.pcapng/packets]`. It appends to a copy of the file, because `light_pcapng_open_append()` parses the whole file first and so reaches the same parser paths as reading. `test_append_to_missing_file` covers a file that doesn't exist.
+- `test_append` runs once per committed corpus file and append script, with IDs like `test_append[real_world/.../igmp.pcapng/packets]`. It appends to a copy of the file, because `light_pcapng_open_append()` parses the whole file first and so reaches the same parser paths as reading. The generated cases are left out: `test_read` already parses them, and appending to each would only multiply goldens. `test_append_to_missing_file` covers a file that doesn't exist.
+
+`test_generator.py` checks the generator itself and needs no tool; see [Generated cases](#generated-cases).
 
 Each run:
 
@@ -57,6 +65,7 @@ How the result is judged:
 | `--backend=<name>` | Backend to test (default: `legacy`) |
 | `--regen-golden` | Write the goldens instead of comparing, and delete stale ones. Legacy backend only; needs a Release build with zstd and a 64-bit `tv_sec`. |
 | `--case-timeout=<seconds>` | Per-run timeout (default: 10) |
+| `--generated-dir=<dir>` | Write the generated cases here and keep them, instead of in a temporary directory, to inspect them |
 
 A golden records whatever legacy does, bugs included. For example, `pcapng-example.pcapng.zst` in `all_interfaces` mode has 0 packets, because of the rewind bug in `docs/PLAN.md`. A deliberate fix in the new code will go in `divergences.yaml`; the golden is never edited to match the fix.
 
@@ -227,3 +236,24 @@ Strings (file info and comments) use the dump's convention: code point U+00NN is
 An append script is a JSON file in `cases/append/` with only `description` and `steps`, in the same format as a write script's. A file's info, compression and name come from the file being appended to.
 
 The append dump has the same `opened`, `file` and `reread` fields as the write dump. It adds `fileInfo`: `light_pcang_get_file_info()` right after opening, which shows the interfaces append found while reading the whole file. `file` always has the size and sha256, because append never compresses, even on a `.zst` file.
+
+## Generated cases
+
+`generator/` writes pcapng files from the spec. pytest runs it once at startup, into a temporary directory (or `--generated-dir`), and `test_read` reads every file like a committed one. Only the goldens are committed. To write the files yourself:
+
+```bash
+cd conformance
+python3 -m generator --out /tmp/generated    # every case, plus manifest.json with descriptions and sha256s
+```
+
+| File | Contents |
+| --- | --- |
+| `pcapng_spec.py` | Block types and option codes |
+| `builder.py` | Writes blocks and options byte by byte. Lengths and padding are computed, and each can be overridden for malformed files: an option's length and padding, a block's two length fields, whether `opt_endofopt` is written, extra bytes before the trailing length. Byte order is per section. |
+| `cases/` | One module per family (`shb`, `idb`, `epb`, `spb`). Each case is a function returning a `builder.File`, registered with `@case("<family>/<name>", "<description>", valid=True)`; its case ID is `generated/<family>/<name>.pcapng`. |
+
+`test_generator.py` guards against generator bugs, which would otherwise go into the goldens unnoticed:
+
+- **Deterministic:** generating twice gives identical files and manifests.
+- **Independent parse:** every case marked `valid` is read with [python-pcapng](https://github.com/rshk/python-pcapng). It must find exactly the blocks, fields and raw option values the case built. Malformed cases skip this.
+- **Exact bytes:** the builder's output for options, SHB (in both byte orders), EPB and SPB is compared with layouts written out by hand from the spec, including padding and length overrides. python-pcapng tolerates some padding mistakes, so this catches what it misses.

@@ -66,6 +66,7 @@ python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool 
 python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool --regen-golden  # rewrite goldens
 ```
 
+- **The suite generates part of its corpus at startup** (`conformance/generator/`); add `--generated-dir=<dir>` to keep the files. To run the generator alone: `cd conformance && python3 -m generator --out <dir>`.
 - **Write `--tool-path=<path>` with `=`.** With a space and no test path, pytest takes the tool path for a test path and doesn't find the suite.
 - **Multi-config generators** (Visual Studio) put the tool in `build/conformance/tool/Release/`.
 - **Regenerate goldens only from a Release build with zstd.** `--regen-golden` refuses to run otherwise. Review the golden diff before committing.
