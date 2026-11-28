@@ -4,8 +4,11 @@
 #include "Backend.h"
 #include "Dump.h"
 
+#include <nlohmann/json.hpp>
+
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -26,12 +29,33 @@ namespace
 	const char* const Usage =
 	    "Usage: pcapng-conformance-tool read [--backend <name>] [--all-interfaces]\n"
 	    "                               [--output <dump.json>] <file>\n"
+	    "       pcapng-conformance-tool info\n"
 	    "\n"
-	    "Reads <file> with the given backend (default: legacy) and prints the canonical JSON dump.\n"
+	    "read: reads <file> with the given backend (default: legacy) and prints the canonical JSON dump.\n"
 	    "\n"
 	    "  --backend <name>      Backend to run: legacy\n"
 	    "  --all-interfaces      Open with read_all_interfaces set (PcapPlusPlus never sets it)\n"
-	    "  --output <dump.json>  Write the dump to a file instead of stdout\n";
+	    "  --output <dump.json>  Write the dump to a file instead of stdout\n"
+	    "\n"
+	    "info: prints how the tool was built, as JSON, for the test runner.\n";
+
+	int printInfo()
+	{
+		nlohmann::ordered_json info;
+		info["formatVersion"] = pcpp::conformance::DumpFormatVersion;
+		info["backends"] = pcpp::conformance::availableBackends();
+#ifdef PCAPNGPP_HAS_ZSTD
+		info["zstd"] = true;
+#else
+		info["zstd"] = false;
+#endif
+		// Width of timespec::tv_sec, which the ext API returns packet timestamps in. It is 32 bits on some platforms
+		// (for example 32-bit MinGW), where timestamps after January 2038 wrap around.
+		info["timestampSecBits"] = sizeof(timespec::tv_sec) * 8;
+		std::string out = info.dump() + "\n";
+		std::fwrite(out.data(), 1, out.size(), stdout);
+		return std::fflush(stdout) == 0 ? ExitOk : ExitOutputError;
+	}
 
 	int usageError(const std::string& message)
 	{
@@ -73,6 +97,10 @@ int main(int argc, char* argv[])
 	}
 
 	std::string operation = argv[1];
+	if (operation == "info")
+	{
+		return argc == 2 ? printInfo() : usageError("info takes no arguments");
+	}
 	if (operation != "read")
 	{
 		return usageError("unknown operation '" + operation + "'");

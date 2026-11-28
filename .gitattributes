@@ -1,0 +1,8 @@
+# Goldens are compared byte for byte with the tool's output, which always uses "\n". Without this, a Windows checkout
+# with core.autocrlf would turn them into CRLF and every case would fail.
+conformance/golden/** -text
+
+# Capture files are binary; never let git touch their line endings
+conformance/corpus/**/*.pcapng binary
+conformance/corpus/**/*.zst binary
+conformance/corpus/**/*.zstd binary

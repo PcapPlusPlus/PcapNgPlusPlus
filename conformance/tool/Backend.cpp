@@ -14,5 +14,10 @@ namespace pcpp
 			}
 			return nullptr;
 		}
+
+		std::vector<std::string> availableBackends()
+		{
+			return { "legacy" };
+		}
 	}  // namespace conformance
 }  // namespace pcpp

@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": true,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":113,"ticksPerSecond":1000000},
+      {"linkType":276,"ticksPerSecond":1000000}
+    ]
+  },
+  "packetCount": 5,
+  "packets": [
+    {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":21,"originalLength":21,"comment":null,"data":"000000000000000000000000810000018847aabbcc"},
+    {"interfaceId":1,"linkType":113,"timestampSec":0,"timestampNsec":0,"capturedLength":19,"originalLength":19,"comment":null,"data":"00000001000000000000000000008847aabbcc"},
+    {"interfaceId":2,"linkType":276,"timestampSec":0,"timestampNsec":0,"capturedLength":23,"originalLength":23,"comment":null,"data":"8847000000000001000100000000000000000000aabbcc"},
+    {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":41,"originalLength":41,"comment":null,"data":"00000000000000000000000008004500001b00000000402f0000010101010202020200008847aabbcc"},
+    {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":21,"originalLength":21,"comment":null,"data":"000000000000000000000000884700000040aabbcc"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":1,"ticksPerSecond":1000000},
+    {"linkType":113,"ticksPerSecond":1000000},
+    {"linkType":276,"ticksPerSecond":1000000},
+    {"linkType":1,"ticksPerSecond":1000000},
+    {"linkType":113,"ticksPerSecond":1000000},
+    {"linkType":276,"ticksPerSecond":1000000}
+  ]
+}

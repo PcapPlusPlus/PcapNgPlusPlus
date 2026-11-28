@@ -1,0 +1,44 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": true,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": "Intel(R) Xeon(R) CPU E3-1505M v5 @ 2.80GHz (with SSE4.2)",
+    "osDesc": "Linux 6.12.20-amd64",
+    "userAppDesc": "Dumpcap (Wireshark) 4.4.5",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  },
+  "packetCount": 20,
+  "packets": [
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":984604094,"capturedLength":86,"originalLength":86,"comment":null,"data":"54e1ad6bac15001a37bfee740800450000384de80000ff062dfda9fe75eea9fe75ef3458d25e00191aa0ab87803d5018164f47a1000002fd80030000000840100e800222f10105060708091011121314151617181920"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":984880820,"capturedLength":70,"originalLength":70,"comment":null,"data":"54e1ad6bac15001a37bfee740800450000384de80000ff062dfda9fe75eea9fe75ef3458d25e00191aa0ab87803d5018164f49a2000002fd80020000000840100e800022f101"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":985118445,"capturedLength":50,"originalLength":50,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000240001000040113aeea9fe75efa9fe75eeff1434580010898202fd000700000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":985344737,"capturedLength":52,"originalLength":52,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000260001000040113aeca9fe75efa9fe75eeff1434580012897b02fd0008000000020000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":985593239,"capturedLength":50,"originalLength":50,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000240001000040113aeea9fe75efa9fe75eeff1434580010498802fd400100000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":985857134,"capturedLength":68,"originalLength":68,"comment":null,"data":"001a37bfee7454e1ad6bac15080045000036c274400040063873a9fe75efa9fe75eed25e3458ab87802f00191aa05018fadf4645000002fd8001000000060e8040101003"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":986052083,"capturedLength":60,"originalLength":60,"comment":null,"data":"54e1ad6bac15001a37bfee7408004500002b4db00000ff112e37a9fe75eea9fe75ef3458ff1400174a6102fd40020000000700010000000fff000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":986228668,"capturedLength":60,"originalLength":60,"comment":null,"data":"54e1ad6bac15001a37bfee740800450000254dc10000ff112e2ca9fe75eea9fe75ef3458ff140011888602fd00000000000101000000000000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":986395538,"capturedLength":50,"originalLength":50,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000240001000040113aeea9fe75efa9fe75eeff1434580010498602fd400300000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":986563455,"capturedLength":60,"originalLength":60,"comment":null,"data":"54e1ad6bac15001a37bfee740800450000254dc30000ff112e2aa9fe75eea9fe75ef3458ff140011498202fd40040000000100000000000000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":986728690,"capturedLength":73,"originalLength":73,"comment":null,"data":"001a37bfee7454e1ad6bac1508004500003bf0e44000400609fea9fe75efa9fe75eed25a345849689c4200186ab95018faf00c32000002fd00050000000b0e80000000000000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":986893084,"capturedLength":71,"originalLength":71,"comment":null,"data":"54e1ad6bac15001a37bfee740800450000394dd20000ff062e12a9fe75eea9fe75ef3458d25a00186ab949689c555018165da0a5000002fd0006000000090e8040101000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":987066423,"capturedLength":82,"originalLength":82,"comment":null,"data":"ffffffffffff001a37bfee740800450000444d7c0000ff11a441a9fe75eea9feffff345834580030df5e02fd0004000000204241554e4545344d5a31373034323430334010001a37bfee74001a37bfee7400"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":987237853,"capturedLength":56,"originalLength":56,"comment":null,"data":"00e0b149390200137225facd08004500002a000000008011c8c8ac16b2ea0a0a08f0ff14345800167a8002fd0002000000064241554e4545"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":987404275,"capturedLength":50,"originalLength":50,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000240001000040113aeea9fe75efa9fe75eeff1434580010898802fd000100000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":987573854,"capturedLength":67,"originalLength":67,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000350001000040113adda9fe75efa9fe75eeff14345800214b6d02fd0003000000114241554e4545344d5a3137303432343033"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":987733041,"capturedLength":50,"originalLength":50,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000240001000040113aeea9fe75efa9fe75eeff1434580010121202fd777700000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":987896870,"capturedLength":73,"originalLength":73,"comment":null,"data":"001a37bfee7454e1ad6bac1508004500003bf0e44000400609fea9fe75efa9fe75eed25a345849689c4200186ab95018faf00c30000002ff00050000000b0e80000000000000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":988055996,"capturedLength":50,"originalLength":50,"comment":null,"data":"001a37bfee7454e1ad6bac150800450000240001000040113aeea9fe75efa9fe75eeff14345800108d84ff00000100000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1748735170,"timestampNsec":988229768,"capturedLength":89,"originalLength":89,"comment":null,"data":"001a37bfee7454e1ad6bac1508004500003cf0e44000400609fda9fe75efa9fe75eed25a345849689c4200186ab95018faf00c2c000002fd00050000000b0e8000000000000000000005060708091011121314151617181920"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":1,"ticksPerSecond":1000000000},
+    {"linkType":1,"ticksPerSecond":1000000000}
+  ]
+}

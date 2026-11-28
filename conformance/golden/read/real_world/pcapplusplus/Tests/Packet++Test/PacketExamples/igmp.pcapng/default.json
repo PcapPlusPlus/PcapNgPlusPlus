@@ -1,0 +1,25 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": false,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": "File created by merging: \nFile1: igmpv1_sample.pcap \nFile2: igmpv2_sample.pcap \n",
+    "hardwareDesc": null,
+    "osDesc": "64-bit Windows 7 Service Pack 1, build 7601",
+    "userAppDesc": "mergecap",
+    "interfaces": []
+  },
+  "packetCount": 4,
+  "packets": [
+    {"interfaceId":0,"linkType":1,"timestampSec":1192617506,"timestampNsec":120330000,"capturedLength":60,"originalLength":60,"comment":null,"data":"01005e0000010001636fc800080045c0001cf77000000102d6b50a3c00bde00000011164ee9b00000000000000000000000000000000000000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1192617507,"timestampNsec":646312000,"capturedLength":60,"originalLength":60,"comment":null,"data":"01005e7ffffa001558dca84d0800460000200e47000001021a540a3c0207effffffa940400001600fa04effffffa0000000000000000000000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1333351329,"timestampNsec":213827000,"capturedLength":60,"originalLength":60,"comment":null,"data":"01005e0000015cd998f91c18080046000020000200000102723d0a00c897e0000001940400001100eeff000000000000000000000000000000000000"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1333351329,"timestampNsec":537934000,"capturedLength":60,"originalLength":60,"comment":null,"data":"01005e0000fc782bcb99fb5b08004600002053ab000001021d8d0a00c8a3e00000fc9404000012000d03e00000fc0000000000000000000000000000"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":1,"ticksPerSecond":1000000}
+  ]
+}
