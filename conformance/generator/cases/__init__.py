@@ -25,6 +25,7 @@ def case(name, description, valid=True, suffix=".pcapng"):
 def all_cases():
     """Every case, in case ID order."""
     from . import (  # noqa: F401  (registers the cases)
+        bitflips,
         blocks,
         epb,
         idb,
@@ -34,6 +35,7 @@ def all_cases():
         shb,
         spb,
         timestamps,
+        truncation,
         zstd,
     )
 
