@@ -1,0 +1,6 @@
+{
+  "description": "A packet with no data and original length 60",
+  "steps": [
+    {"packet": {"data": "", "originalLength": 60, "timestampSec": 1700000000}}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Packets of 100, 2000, 50 and 3000 bytes; the writer reuses one buffer and must clear its padding",
+  "steps": [
+    {"packet": {"data": {"length": 100}, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 2000}, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 50}, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 3000}, "timestampSec": 1700000000}}
+  ]
+}

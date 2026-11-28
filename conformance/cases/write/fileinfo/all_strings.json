@@ -1,0 +1,12 @@
+{
+  "description": "All four light_create_file_info() strings set",
+  "fileInfo": {
+    "osDesc": "Linux 6.8",
+    "hardwareDesc": "x86_64",
+    "userAppDesc": "PcapPlusPlus 25.05",
+    "fileComment": "a capture"
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

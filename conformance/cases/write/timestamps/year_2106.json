@@ -1,0 +1,6 @@
+{
+  "description": "Timestamp 4294967296 s + 5 ns",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 4294967296, "timestampNsec": 5}}
+  ]
+}

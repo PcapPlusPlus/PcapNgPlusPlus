@@ -1,0 +1,8 @@
+{
+  "description": "Packets with and without comments",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "comment": "one", "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000001}},
+    {"packet": {"data": {"length": 60}, "comment": "three", "timestampSec": 1700000002}}
+  ]
+}

@@ -70,6 +70,53 @@ namespace pcpp
 			std::vector<InterfaceRecord> interfacesAfterRead;
 		};
 
+		/// One packet a write script asks for, as PcapPlusPlus would pass it to light_write_packet().
+		struct PacketToWrite
+		{
+			uint32_t interfaceId = 0;
+			uint16_t linkType = 1;
+			int64_t timestampSec = 0;
+			int64_t timestampNsec = 0;
+			uint32_t capturedLength = 0;
+			uint32_t originalLength = 0;
+			OptionalBytes comment;      ///< Passed with comment_length cast to uint16_t, as PcapPlusPlus does
+			std::vector<uint8_t> data;  ///< At least capturedLength bytes
+		};
+
+		/// One step of a write script: write a packet, or flush.
+		struct WriteStep
+		{
+			enum class Kind
+			{
+				Packet,
+				Flush
+			};
+			Kind kind = Kind::Packet;
+			PacketToWrite packet;
+		};
+
+		/// What to write: parsed from a write case's JSON file (see conformance/README.md).
+		struct WriteScript
+		{
+			/// True: light_create_default_file_info(). False: light_create_file_info() with the strings below,
+			/// where an absent string is passed as a null pointer.
+			bool defaultFileInfo = true;
+			OptionalBytes osDesc;
+			OptionalBytes hardwareDesc;
+			OptionalBytes userAppDesc;
+			OptionalBytes fileComment;
+
+			int compressionLevel = 0;
+			std::string fileName;  ///< Output file name, relative to the output directory
+			std::vector<WriteStep> steps;
+		};
+
+		/// What writing exposed. The written file itself is examined, and read back, by the tool.
+		struct WriteResult
+		{
+			bool opened = false;  ///< False if light_pcapng_open_write() returned null
+		};
+
 		/// A pcapng implementation under test.
 		class Backend
 		{
@@ -81,6 +128,12 @@ namespace pcpp
 			/// @param[in] readAllInterfaces Passed to the open call; true scans the whole file for interfaces first.
 			/// @return What the implementation exposed while doing so.
 			virtual ReadResult read(const std::string& path, bool readAllInterfaces) = 0;
+
+			/// Creates @p path and runs @p script on it: open for writing, run each step, close.
+			/// @param[in] path File to write.
+			/// @param[in] script What to write.
+			/// @return Whether the file could be opened.
+			virtual WriteResult write(const std::string& path, const WriteScript& script) = 0;
 		};
 
 		/// Creates the backend called @p name ("legacy"), or returns null if there is no such backend.

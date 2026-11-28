@@ -1,0 +1,6 @@
+{
+  "description": "Original length smaller than captured length",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "originalLength": 10, "timestampSec": 1700000000}}
+  ]
+}

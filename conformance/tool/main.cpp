@@ -1,8 +1,10 @@
-// pcapng-conformance-tool: runs one operation of one pcapng backend on one file and prints the canonical JSON dump.
+// pcapng-conformance-tool: runs one operation of one pcapng backend and prints the canonical JSON dump.
 // The pytest suite runs it once per case in a subprocess, so a crash or hang in a backend only fails that case.
 
 #include "Backend.h"
 #include "Dump.h"
+#include "Script.h"
+#include "Sha256.h"
 
 #include <nlohmann/json.hpp>
 
@@ -11,6 +13,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 
 #ifdef _WIN32
@@ -29,26 +32,37 @@ namespace
 	const char* const Usage =
 	    "Usage: pcapng-conformance-tool read [--backend <name>] [--all-interfaces]\n"
 	    "                               [--output <dump.json>] <file>\n"
+	    "       pcapng-conformance-tool write [--backend <name>] --script <script.json> --output-dir <dir>\n"
+	    "                               [--output <dump.json>]\n"
 	    "       pcapng-conformance-tool info\n"
 	    "\n"
 	    "read: reads <file> with the given backend (default: legacy) and prints the canonical JSON dump.\n"
+	    "write: runs a write script, writing its file into <dir>, then prints a dump of the result,\n"
+	    "       including a read of the written file.\n"
+	    "info: prints how the tool was built, as JSON, for the test runner.\n"
 	    "\n"
 	    "  --backend <name>      Backend to run: legacy\n"
 	    "  --all-interfaces      Open with read_all_interfaces set (PcapPlusPlus never sets it)\n"
-	    "  --output <dump.json>  Write the dump to a file instead of stdout\n"
-	    "\n"
-	    "info: prints how the tool was built, as JSON, for the test runner.\n";
+	    "  --script <file>       The write script (see conformance/README.md)\n"
+	    "  --output-dir <dir>    Directory the write script's file is created in\n"
+	    "  --output <dump.json>  Write the dump to a file instead of stdout\n";
+
+	bool hasZstd()
+	{
+#ifdef PCAPNGPP_HAS_ZSTD
+		return true;
+#else
+		return false;
+#endif
+	}
 
 	int printInfo()
 	{
 		nlohmann::ordered_json info;
 		info["formatVersion"] = pcpp::conformance::DumpFormatVersion;
 		info["backends"] = pcpp::conformance::availableBackends();
-#ifdef PCAPNGPP_HAS_ZSTD
-		info["zstd"] = true;
-#else
-		info["zstd"] = false;
-#endif
+		info["operations"] = { "read", "write" };
+		info["zstd"] = hasZstd();
 		// Width of timespec::tv_sec, which the ext API returns packet timestamps in. It is 32 bits on some platforms
 		// (for example 32-bit MinGW), where timestamps after January 2038 wrap around.
 		info["timestampSecBits"] = sizeof(timespec::tv_sec) * 8;
@@ -81,6 +95,84 @@ namespace
 		}
 		return ExitOk;
 	}
+
+	bool readFile(const std::string& path, std::string& contents)
+	{
+		std::ifstream file(path, std::ios::binary);
+		if (!file)
+		{
+			return false;
+		}
+		contents.assign(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+		return true;
+	}
+
+	struct Options
+	{
+		std::string backendName = "legacy";
+		std::string outputPath;
+		std::string inputPath;
+		std::string scriptPath;
+		std::string outputDir;
+		bool readAllInterfaces = false;
+	};
+
+	int runRead(pcpp::conformance::Backend& backend, const Options& options)
+	{
+		if (options.inputPath.empty())
+		{
+			return usageError("read needs an input file");
+		}
+		pcpp::conformance::ReadResult result = backend.read(options.inputPath, options.readAllInterfaces);
+		return writeOutput(pcpp::conformance::dumpReadResult(result), options.outputPath);
+	}
+
+	int runWrite(pcpp::conformance::Backend& backend, const Options& options)
+	{
+		if (options.scriptPath.empty() || options.outputDir.empty())
+		{
+			return usageError("write needs --script and --output-dir");
+		}
+
+		std::string scriptText;
+		if (!readFile(options.scriptPath, scriptText))
+		{
+			return usageError("could not read the script " + options.scriptPath);
+		}
+		pcpp::conformance::WriteScript script;
+		try
+		{
+			script = pcpp::conformance::parseWriteScript(scriptText);
+		}
+		catch (const pcpp::conformance::ScriptError& error)
+		{
+			return usageError(options.scriptPath + ": " + error.what());
+		}
+
+		const std::string path = options.outputDir + "/" + script.fileName;
+		pcpp::conformance::WriteResult result = backend.write(path, script);
+
+		pcpp::conformance::WrittenFile file;
+		std::string contents;
+		file.exists = readFile(path, contents);
+		if (file.exists)
+		{
+			// Without zstd, legacy ignores the compression level and writes a plain file
+			file.compressed = script.compressionLevel > 0 && hasZstd();
+			file.size = contents.size();
+			file.sha256 =
+			    pcpp::conformance::sha256Hex(reinterpret_cast<const uint8_t*>(contents.data()), contents.size());
+		}
+
+		// Read the file back the way PcapPlusPlus would, with the same backend
+		pcpp::conformance::ReadResult reread;
+		if (file.exists)
+		{
+			reread = backend.read(path, false);
+		}
+		return writeOutput(pcpp::conformance::dumpWriteResult(result, file, file.exists ? &reread : nullptr),
+		                   options.outputPath);
+	}
 }  // namespace
 
 int main(int argc, char* argv[])
@@ -101,56 +193,64 @@ int main(int argc, char* argv[])
 	{
 		return argc == 2 ? printInfo() : usageError("info takes no arguments");
 	}
-	if (operation != "read")
+	if (operation != "read" && operation != "write")
 	{
 		return usageError("unknown operation '" + operation + "'");
 	}
 
-	std::string backendName = "legacy";
-	std::string outputPath;
-	std::string inputPath;
-	bool readAllInterfaces = false;
-
+	Options options;
 	for (int i = 2; i < argc; ++i)
 	{
 		std::string arg = argv[i];
-		if (arg == "--backend" || arg == "--output")
+		std::string* value = nullptr;
+		if (arg == "--backend")
+		{
+			value = &options.backendName;
+		}
+		else if (arg == "--output")
+		{
+			value = &options.outputPath;
+		}
+		else if (arg == "--script" && operation == "write")
+		{
+			value = &options.scriptPath;
+		}
+		else if (arg == "--output-dir" && operation == "write")
+		{
+			value = &options.outputDir;
+		}
+
+		if (value != nullptr)
 		{
 			if (i + 1 >= argc)
 			{
 				return usageError(arg + " needs a value");
 			}
-			(arg == "--backend" ? backendName : outputPath) = argv[++i];
+			*value = argv[++i];
 		}
-		else if (arg == "--all-interfaces")
+		else if (arg == "--all-interfaces" && operation == "read")
 		{
-			readAllInterfaces = true;
+			options.readAllInterfaces = true;
 		}
 		else if (!arg.empty() && arg[0] == '-')
 		{
-			return usageError("unknown option '" + arg + "'");
+			return usageError("unknown option '" + arg + "' for " + operation);
 		}
-		else if (inputPath.empty())
+		else if (operation == "read" && options.inputPath.empty())
 		{
-			inputPath = arg;
+			options.inputPath = arg;
 		}
 		else
 		{
-			return usageError("only one input file is allowed");
+			return usageError("unexpected argument '" + arg + "'");
 		}
 	}
 
-	if (inputPath.empty())
-	{
-		return usageError("no input file");
-	}
-
-	std::unique_ptr<pcpp::conformance::Backend> backend = pcpp::conformance::createBackend(backendName);
+	std::unique_ptr<pcpp::conformance::Backend> backend = pcpp::conformance::createBackend(options.backendName);
 	if (!backend)
 	{
-		return usageError("unknown backend '" + backendName + "'");
+		return usageError("unknown backend '" + options.backendName + "'");
 	}
 
-	pcpp::conformance::ReadResult result = backend->read(inputPath, readAllInterfaces);
-	return writeOutput(pcpp::conformance::dumpReadResult(result), outputPath);
+	return operation == "read" ? runRead(*backend, options) : runWrite(*backend, options);
 }

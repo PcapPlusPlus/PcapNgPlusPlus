@@ -1,0 +1,6 @@
+{
+  "description": "A truncated capture: 60 bytes captured of 1514",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "originalLength": 1514, "timestampSec": 1700000000}}
+  ]
+}

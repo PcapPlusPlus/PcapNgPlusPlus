@@ -147,30 +147,78 @@ namespace pcpp
 			}
 		}  // namespace
 
+		namespace
+		{
+			/// Adds the fields of a read dump to @p json
+			void addReadFields(Json& json, const ReadResult& result)
+			{
+				json["readAllInterfaces"] = result.readAllInterfaces;
+				json["opened"] = result.opened;
+				json["fileInfo"] = result.hasFileInfo ? fileInfoToJson(result.fileInfo) : Json(nullptr);
+				json["packetCount"] = result.packets.size();
+
+				Json packets = Json::array();
+				for (const PacketRecord& packet : result.packets)
+				{
+					packets.push_back(packetToJson(packet));
+				}
+				json["packets"] = std::move(packets);
+
+				json["interfacesAfterRead"] =
+				    result.hasFileInfo ? interfacesToJson(result.interfacesAfterRead) : Json(nullptr);
+			}
+
+			std::string render(const Json& json)
+			{
+				std::string out;
+				layout(out, json, 0);
+				out += "\n";
+				return out;
+			}
+		}  // namespace
+
 		std::string dumpReadResult(const ReadResult& result)
 		{
 			Json json;
 			json["formatVersion"] = DumpFormatVersion;
 			json["operation"] = "read";
-			json["readAllInterfaces"] = result.readAllInterfaces;
+			addReadFields(json, result);
+			return render(json);
+		}
+
+		std::string dumpWriteResult(const WriteResult& result, const WrittenFile& file, const ReadResult* reread)
+		{
+			Json json;
+			json["formatVersion"] = DumpFormatVersion;
+			json["operation"] = "write";
 			json["opened"] = result.opened;
-			json["fileInfo"] = result.hasFileInfo ? fileInfoToJson(result.fileInfo) : Json(nullptr);
-			json["packetCount"] = result.packets.size();
 
-			Json packets = Json::array();
-			for (const PacketRecord& packet : result.packets)
+			if (!file.exists)
 			{
-				packets.push_back(packetToJson(packet));
+				json["file"] = nullptr;
 			}
-			json["packets"] = std::move(packets);
+			else
+			{
+				Json fileJson;
+				fileJson["compressed"] = file.compressed;
+				// A compressed file's bytes depend on the zstd version, so only uncompressed files are compared
+				// byte for byte; the reread checks the content of both
+				fileJson["size"] = file.compressed ? Json(nullptr) : Json(file.size);
+				fileJson["sha256"] = file.compressed ? Json(nullptr) : Json(file.sha256);
+				json["file"] = std::move(fileJson);
+			}
 
-			json["interfacesAfterRead"] =
-			    result.hasFileInfo ? interfacesToJson(result.interfacesAfterRead) : Json(nullptr);
-
-			std::string out;
-			layout(out, json, 0);
-			out += "\n";
-			return out;
+			if (reread == nullptr)
+			{
+				json["reread"] = nullptr;
+			}
+			else
+			{
+				Json rereadJson;
+				addReadFields(rereadJson, *reread);
+				json["reread"] = std::move(rereadJson);
+			}
+			return render(json);
 		}
 	}  // namespace conformance
 }  // namespace pcpp

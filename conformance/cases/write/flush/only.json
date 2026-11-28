@@ -1,0 +1,6 @@
+{
+  "description": "A flush and no packets",
+  "steps": [
+    {"flush": true}
+  ]
+}

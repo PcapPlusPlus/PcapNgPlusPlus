@@ -1,0 +1,6 @@
+{
+  "description": "A packet comment: short; comment_length is a uint16_t, cast as PcapPlusPlus does",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "comment": "hello", "timestampSec": 1700000000}}
+  ]
+}

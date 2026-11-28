@@ -1,0 +1,12 @@
+{
+  "description": "All four strings null pointers",
+  "fileInfo": {
+    "osDesc": null,
+    "hardwareDesc": null,
+    "userAppDesc": null,
+    "fileComment": null
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

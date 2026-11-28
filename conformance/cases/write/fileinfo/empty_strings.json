@@ -1,0 +1,12 @@
+{
+  "description": "All four strings empty, which is what PcapPlusPlus passes for unset metadata",
+  "fileInfo": {
+    "osDesc": "",
+    "hardwareDesc": "",
+    "userAppDesc": "",
+    "fileComment": ""
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

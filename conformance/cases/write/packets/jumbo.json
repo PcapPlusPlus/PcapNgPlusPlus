@@ -1,0 +1,6 @@
+{
+  "description": "A 9000-byte packet",
+  "steps": [
+    {"packet": {"data": {"length": 9000}, "timestampSec": 1700000000}}
+  ]
+}

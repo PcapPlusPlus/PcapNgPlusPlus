@@ -1,0 +1,9 @@
+{
+  "description": "Only osDesc set; the others are null pointers",
+  "fileInfo": {
+    "osDesc": "value"
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}
