@@ -24,9 +24,11 @@ def main():
     problems = []
     for entry in report["files"]:
         name = pathlib.Path(entry["file"]).name
-        if name in files:
+        # gcovr keeps excluded lines in its JSON, marked "gcovr/excluded"; only the others count
+        counted = [line for line in entry["lines"] if not line.get("gcovr/excluded")]
+        if name in files and counted:
             problems.append(f"{entry['file']} is excluded but in the report")
-        leaked = {line.get("function_name", "").split(":")[-1] for line in entry["lines"]} & excluded
+        leaked = {line.get("function_name", "").split(":")[-1] for line in counted} & excluded
         problems += [f"{entry['file']}: excluded function {fn} is in the report" for fn in sorted(leaked)]
     if problems:
         print("\n".join(problems))
