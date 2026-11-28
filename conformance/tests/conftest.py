@@ -110,4 +110,6 @@ def tool(request, backend, regen_golden):
         pytest.exit(f"backend {backend!r} isn't in this tool build (it has {tool.info['backends']})", 2)
     if regen_golden and not tool.info["zstd"]:
         pytest.exit("--regen-golden needs a tool built with -DLIGHT_PCAPNG_ZSTD=ON, or .zst goldens go stale", 2)
+    if regen_golden and tool.info["timestampSecBits"] < 64:
+        pytest.exit("--regen-golden needs a platform with a 64-bit timespec::tv_sec, or timestamps after 2038 wrap", 2)
     return tool

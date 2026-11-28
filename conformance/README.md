@@ -30,6 +30,7 @@ How the result is judged:
 - **Crash.** A non-zero exit other than a tool error, or a signal, becomes the dump `{"crash": true}`. A crash passes only if the golden records one. The failure message shows the exit code and stderr.
 - **Hang.** A run that doesn't exit within `--case-timeout` seconds fails the case.
 - **No zstd.** `.zst` cases are skipped when the tool was built without zstd.
+- **32-bit `tv_sec`.** Where `timespec::tv_sec` is 32 bits (32-bit MinGW), legacy's timestamps after January 2038 wrap around. There, a case whose golden has such a timestamp is a strict expected failure. Every other case must still pass, and the run fails if a marked case starts passing.
 
 `test_no_stale_read_goldens` fails if a golden has no corpus case left.
 
@@ -37,7 +38,7 @@ How the result is judged:
 | --- | --- |
 | `--tool-path=<path>` | The tool executable (required). Use `=`: with a space and no test path, pytest takes the value for a test path. |
 | `--backend=<name>` | Backend to test (default: `legacy`) |
-| `--regen-golden` | Write the goldens instead of comparing, and delete stale ones. Legacy backend only; needs a Release build with zstd. |
+| `--regen-golden` | Write the goldens instead of comparing, and delete stale ones. Legacy backend only; needs a Release build with zstd and a 64-bit `tv_sec`. |
 | `--case-timeout=<seconds>` | Per-run timeout (default: 60) |
 
 A golden records whatever legacy does, bugs included. For example, `pcapng-example.pcapng.zst` in `all_interfaces` mode has 0 packets, because of the rewind bug in `docs/PLAN.md`. A deliberate fix in the new code will go in `divergences.yaml`; the golden is never edited to match the fix.
@@ -48,7 +49,7 @@ The tool runs one operation of one backend on one file and prints a canonical JS
 
 ```bash
 build/conformance/tool/pcapng-conformance-tool read [--backend legacy] [--all-interfaces] [--output dump.json] <file>
-build/conformance/tool/pcapng-conformance-tool info    # {"formatVersion":1,"backends":["legacy"],"zstd":true}
+build/conformance/tool/pcapng-conformance-tool info    # {"formatVersion":1,"backends":["legacy"],"zstd":true,"timestampSecBits":64}
 ```
 
 - `--backend`: only `legacy` exists for now. `NewBackend` arrives in M4.

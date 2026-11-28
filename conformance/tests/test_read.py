@@ -1,6 +1,7 @@
 """Read every corpus file with the backend under test and compare the dump with the golden recorded from legacy."""
 
 import difflib
+import json
 
 import pytest
 
@@ -43,13 +44,30 @@ def describe_mismatch(expected, actual):
     return "\n".join(diff)
 
 
+def has_timestamp_beyond(golden, bits):
+    """Whether a read golden has a packet timestamp that doesn't fit in a signed `bits`-bit tv_sec."""
+    limit = 2 ** (bits - 1)
+    dump = json.loads(golden.read_bytes())
+    return any(not -limit <= p["timestampSec"] < limit for p in dump.get("packets", []))
+
+
 @pytest.mark.parametrize("case_id, path, mode", read_cases())
-def test_read(case_id, path, mode, tool, backend, regen_golden):
+def test_read(case_id, path, mode, tool, backend, regen_golden, request):
     if is_zstd_case(case_id) and not tool.info["zstd"]:
         pytest.skip("tool built without zstd")
 
-    actual, crash = tool.read(backend, path, READ_MODES[mode])
     golden = golden_path(case_id, mode)
+
+    # The ext API returns timestamps in a timespec. Where its tv_sec is 32 bits (for example 32-bit MinGW), legacy's
+    # timestamps after January 2038 wrap around, so only cases whose golden has such a timestamp are expected to
+    # fail. strict: if one starts passing, the run fails, so the mark gets removed.
+    sec_bits = tool.info["timestampSecBits"]
+    if not regen_golden and sec_bits < 64 and golden.is_file() and has_timestamp_beyond(golden, sec_bits):
+        request.applymarker(
+            pytest.mark.xfail(strict=True, reason=f"{sec_bits}-bit timespec::tv_sec can't hold this case's timestamps")
+        )
+
+    actual, crash = tool.read(backend, path, READ_MODES[mode])
 
     if regen_golden:
         golden.parent.mkdir(parents=True, exist_ok=True)

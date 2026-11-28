@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -48,6 +49,9 @@ namespace
 #else
 		info["zstd"] = false;
 #endif
+		// Width of timespec::tv_sec, which the ext API returns packet timestamps in. It is 32 bits on some platforms
+		// (for example 32-bit MinGW), where timestamps after January 2038 wrap around.
+		info["timestampSecBits"] = sizeof(timespec::tv_sec) * 8;
 		std::string out = info.dump() + "\n";
 		std::fwrite(out.data(), 1, out.size(), stdout);
 		return std::fflush(stdout) == 0 ? ExitOk : ExitOutputError;
