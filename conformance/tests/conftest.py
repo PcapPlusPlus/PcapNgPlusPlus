@@ -183,18 +183,32 @@ def _timestamps(value):
             yield from _timestamps(item)
 
 
-def expect_failure_if_timestamps_overflow(request, tool, golden, regen_golden):
-    """The ext API returns timestamps in a timespec. Where its tv_sec is 32 bits (for example 32-bit MinGW), legacy's
-    timestamps after January 2038 wrap around, so a case whose golden has such a timestamp is expected to fail there.
+def expect_failure_if_timestamps_overflow(request, tool, golden, regen_golden, written_timestamps=()):
+    """Where timespec::tv_sec is 32 bits (for example 32-bit MinGW), legacy can't handle every timestamp, so these
+    cases are expected to fail there:
+
+    - reading: the golden has a timestamp outside the signed 32-bit range, which wraps around;
+    - writing: `written_timestamps`, the tv_sec values a script passes, has one outside [0, 2^31). Larger values don't
+      fit, and legacy's writer masks tv_sec to 32 unsigned bits, which turns a negative value into a date in 2106.
+
     strict: if one starts passing, the run fails, so the mark gets removed."""
     bits = tool.info["timestampSecBits"]
     if regen_golden or bits >= 64 or not golden.is_file():
         return
     limit = 2 ** (bits - 1)
     if any(not -limit <= sec < limit for sec in _timestamps(json.loads(golden.read_bytes()))):
-        request.applymarker(
-            pytest.mark.xfail(strict=True, reason=f"{bits}-bit timespec::tv_sec can't hold this case's timestamps")
-        )
+        reason = f"{bits}-bit timespec::tv_sec can't hold this case's timestamps"
+    elif any(not 0 <= sec < limit for sec in written_timestamps):
+        reason = f"legacy writes a {bits}-bit timespec::tv_sec as unsigned, so this case's timestamps change"
+    else:
+        return
+    request.applymarker(pytest.mark.xfail(strict=True, reason=reason))
+
+
+def script_timestamps(script_path):
+    """The tv_sec of every packet a write script writes (0 when not given, as the tool does)."""
+    script = json.loads(script_path.read_text())
+    return [step["packet"].get("timestampSec", 0) for step in script.get("steps", []) if "packet" in step]
 
 
 @pytest.fixture(scope="session")

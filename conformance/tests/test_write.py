@@ -12,6 +12,7 @@ from conftest import (
     check_no_stale_goldens,
     compare_with_golden,
     expect_failure_if_timestamps_overflow,
+    script_timestamps,
     write_case_needs_zstd,
     write_cases,
 )
@@ -29,7 +30,7 @@ def test_write(case_id, script, tool, backend, regen_golden, request, tmp_path):
         pytest.skip("tool built without zstd")
 
     golden = golden_path(case_id)
-    expect_failure_if_timestamps_overflow(request, tool, golden, regen_golden)
+    expect_failure_if_timestamps_overflow(request, tool, golden, regen_golden, script_timestamps(script))
     actual, crash = tool.write(backend, script, tmp_path, case_timeout(golden, regen_golden))
     compare_with_golden(golden, actual, crash, regen_golden)
 

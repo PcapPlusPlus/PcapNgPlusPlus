@@ -39,7 +39,11 @@ How the result is judged:
 - **No zstd.** These cases are skipped when the tool was built without zstd:
   - `.zst` corpus files;
   - write scripts that compress or write a `.zst` name. Without zstd, legacy ignores the compression level and the reader doesn't decompress.
-- **32-bit `tv_sec`.** Where `timespec::tv_sec` is 32 bits (32-bit MinGW), legacy's timestamps after January 2038 wrap around. There, a case whose golden has such a timestamp is a strict expected failure. Every other case must still pass, and the run fails if a marked case starts passing.
+- **32-bit `tv_sec`.** Where `timespec::tv_sec` is 32 bits (32-bit MinGW), legacy can't handle every timestamp. Two kinds of case are strict expected failures there:
+  - a case whose golden has a timestamp outside the signed 32-bit range, since those wrap around;
+  - a write case whose script passes a `timestampSec` outside `[0, 2^31)`. Larger values don't fit, and legacy's writer masks `tv_sec` to 32 unsigned bits, so a negative value becomes a date in 2106.
+
+  Every other case must still pass, and the run fails if a marked case starts passing.
 
 `test_no_stale_read_goldens` and `test_no_stale_write_goldens` fail if a golden has no case left.
 
