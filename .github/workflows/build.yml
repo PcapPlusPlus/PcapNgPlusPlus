@@ -320,6 +320,9 @@ jobs:
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: ./coverage.xml
+          # Upload only gcovr's report; the action's own search and gcov plugin would add the tool and system headers
+          disable_search: true
+          plugins: noop
           flags: legacy
           fail_ci_if_error: false
           verbose: true

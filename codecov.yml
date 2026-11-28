@@ -12,3 +12,7 @@ coverage:
 codecov:
   notify:
     wait_for_ci: yes
+
+# The conformance tool and its vendored code are test infrastructure, not code under test
+ignore:
+  - "conformance/**"

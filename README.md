@@ -1,5 +1,7 @@
 # PcapNgPlusPlus
 
+[![Coverage](https://codecov.io/gh/PcapPlusPlus/PcapNgPlusPlus/branch/main/graph/badge.svg)](https://codecov.io/gh/PcapPlusPlus/PcapNgPlusPlus)
+
 PcapNgPlusPlus is a modern C++14 implementation of a pcapng reader and writer, intended to replace [LightPcapNg](https://github.com/rvelea/LightPcapNg) in [PcapPlusPlus](https://github.com/seladb/PcapPlusPlus). It reads, writes and appends pcapng files, including zstd-compressed ones.
 
 > **Status:** early development (milestone M1). Nothing here is usable as a library yet. See [`docs/PLAN.md`](docs/PLAN.md) for the plan and progress.
