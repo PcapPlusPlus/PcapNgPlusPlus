@@ -1,0 +1,44 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz (with SSE4.2)",
+    "osDesc": "macOS 26.0.1, build 25A362 (Darwin 25.0.0)",
+    "userAppDesc": "Dumpcap (Wireshark) 4.6.3 (v4.6.3-0-g648f69f3e168)",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 1084,
+    "sha256": "89fef63659052bced29140693ead94e931b8ecdd8661d020945579ab3efacada"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz (with SSE4.2)",
+      "osDesc": "macOS 26.0.1, build 25A362 (Darwin 25.0.0)",
+      "userAppDesc": "Dumpcap (Wireshark) 4.6.3 (v4.6.3-0-g648f69f3e168)",
+      "interfaces": []
+    },
+    "packetCount": 3,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1771139498,"timestampNsec":559272000,"capturedLength":151,"originalLength":151,"comment":null,"data":"8c902d2d0424e61e2dd4a70c080045020089000040004006b350c0a84442c13ec0f3f5f51538fc7d182affbf41b98018080bc3f200000101080a25590da747aade9d000000550003000075736572007265616465720064617461626173650070666d6567726e61726773006170706c69636174696f6e5f6e616d65007073716c00636c69656e745f656e636f64696e6700555446380000"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1771139498,"timestampNsec":883797000,"capturedLength":385,"originalLength":385,"comment":null,"dataSha256":"55988f25a0b91b53d305cb222345da972a76fa464cb2d5ad3aab89be9f05333a"},
+      {"interfaceId":1,"linkType":147,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":10,"originalLength":10,"comment":null,"data":"00112233445566778899"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":147,"ticksPerSecond":1000000000}
+    ]
+  }
+}

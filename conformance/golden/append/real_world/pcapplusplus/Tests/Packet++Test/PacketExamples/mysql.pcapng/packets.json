@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz (with SSE4.2)",
+    "osDesc": "macOS 26.3, build 25D125 (Darwin 25.3.0)",
+    "userAppDesc": "Dumpcap (Wireshark) 4.6.4 (v4.6.4-0-g93282876538d)",
+    "interfaces": [
+      {"linkType":0,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 3060,
+    "sha256": "cfff048eb93e1d6323cae9cae1a0277853be596ab7665b34c1640e1760ba6ed5"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz (with SSE4.2)",
+      "osDesc": "macOS 26.3, build 25D125 (Darwin 25.3.0)",
+      "userAppDesc": "Dumpcap (Wireshark) 4.6.4 (v4.6.4-0-g93282876538d)",
+      "interfaces": []
+    },
+    "packetCount": 4,
+    "packets": [
+      {"interfaceId":0,"linkType":0,"timestampSec":1772697399,"timestampNsec":481825000,"capturedLength":246,"originalLength":246,"comment":null,"data":"02000000450000f200004000400600007f0000017f000001e8470cea5e6f2109b3ea33ff801818ebfee600000101080a559342eb0f99c276ba0000018da6ff1900000001ff0000000000000000000000000000000000000000000000726f6f7400010073616b696c610063616368696e675f736861325f70617373776f72640075035f6f73096d61636f7331342e38095f706c6174666f726d067838365f36340f5f636c69656e745f76657273696f6e05392e362e300c5f636c69656e745f6e616d65086c69626d7973716c045f7069640432313436076f735f7573657204656c61640c70726f6772616d5f6e616d65056d7973716c"},
+      {"interfaceId":0,"linkType":0,"timestampSec":1772697399,"timestampNsec":488532000,"capturedLength":661,"originalLength":661,"comment":null,"dataSha256":"8eacb8ce704a86eb2dc1d0404b1211694f21f884b531fb0ce6b45f92e9efeff0"},
+      {"interfaceId":1,"linkType":1,"timestampSec":1700000000,"timestampNsec":1,"capturedLength":60,"originalLength":60,"comment":"appended","data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b"},
+      {"interfaceId":1,"linkType":1,"timestampSec":1700000001,"timestampNsec":0,"capturedLength":1514,"originalLength":9000,"comment":null,"dataSha256":"05954e40a82511cf2db9f9f9d66a6d12d7cda0dec98aa1792c6fa06e35eb9081"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":0,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  }
+}

@@ -177,20 +177,56 @@ namespace pcpp
 				packet.data.resize(std::max<size_t>(packet.data.size(), packet.capturedLength), 0);
 				return packet;
 			}
+
+			std::vector<WriteStep> parseSteps(const Json& root)
+			{
+				std::vector<WriteStep> result;
+				const Json steps = root.value("steps", Json::array());
+				if (!steps.is_array())
+				{
+					throw ScriptError("script.steps must be an array");
+				}
+				for (size_t i = 0; i < steps.size(); ++i)
+				{
+					const std::string where = "script.steps[" + std::to_string(i) + "]";
+					const Json& stepJson = steps[i];
+					WriteStep step;
+					if (stepJson.is_object() && stepJson.size() == 1 && stepJson.contains("packet"))
+					{
+						step.kind = WriteStep::Kind::Packet;
+						step.packet = getPacket(stepJson.at("packet"), where + ".packet");
+					}
+					else if (stepJson.is_object() && stepJson.size() == 1 && stepJson.contains("flush") &&
+					         stepJson.at("flush") == true)
+					{
+						step.kind = WriteStep::Kind::Flush;
+					}
+					else
+					{
+						throw ScriptError(where + " must be {\"packet\": {...}} or {\"flush\": true}");
+					}
+					result.push_back(std::move(step));
+				}
+
+				return result;
+			}
+
+			Json parseRoot(const std::string& text)
+			{
+				try
+				{
+					return Json::parse(text);
+				}
+				catch (const Json::parse_error& error)
+				{
+					throw ScriptError(std::string("not valid JSON: ") + error.what());
+				}
+			}
 		}  // namespace
 
 		WriteScript parseWriteScript(const std::string& text)
 		{
-			Json root;
-			try
-			{
-				root = Json::parse(text);
-			}
-			catch (const Json::parse_error& error)
-			{
-				throw ScriptError(std::string("not valid JSON: ") + error.what());
-			}
-
+			const Json root = parseRoot(text);
 			checkKeys(root, { "description", "fileName", "fileInfo", "compressionLevel", "steps" }, "the script");
 			WriteScript script;
 
@@ -225,33 +261,17 @@ namespace pcpp
 				script.fileComment = getOptionalBytes(fileInfo, "fileComment", "script.fileInfo");
 			}
 
-			const Json steps = root.value("steps", Json::array());
-			if (!steps.is_array())
-			{
-				throw ScriptError("script.steps must be an array");
-			}
-			for (size_t i = 0; i < steps.size(); ++i)
-			{
-				const std::string where = "script.steps[" + std::to_string(i) + "]";
-				const Json& stepJson = steps[i];
-				WriteStep step;
-				if (stepJson.is_object() && stepJson.size() == 1 && stepJson.contains("packet"))
-				{
-					step.kind = WriteStep::Kind::Packet;
-					step.packet = getPacket(stepJson.at("packet"), where + ".packet");
-				}
-				else if (stepJson.is_object() && stepJson.size() == 1 && stepJson.contains("flush") &&
-				         stepJson.at("flush") == true)
-				{
-					step.kind = WriteStep::Kind::Flush;
-				}
-				else
-				{
-					throw ScriptError(where + " must be {\"packet\": {...}} or {\"flush\": true}");
-				}
-				script.steps.push_back(std::move(step));
-			}
+			script.steps = parseSteps(root);
 
+			return script;
+		}
+
+		AppendScript parseAppendScript(const std::string& text)
+		{
+			const Json root = parseRoot(text);
+			checkKeys(root, { "description", "steps" }, "the append script");
+			AppendScript script;
+			script.steps = parseSteps(root);
 			return script;
 		}
 	}  // namespace conformance

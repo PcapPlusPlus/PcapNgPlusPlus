@@ -34,16 +34,21 @@ namespace
 	    "                               [--output <dump.json>] <file>\n"
 	    "       pcapng-conformance-tool write [--backend <name>] --script <script.json> --output-dir <dir>\n"
 	    "                               [--output <dump.json>]\n"
+	    "       pcapng-conformance-tool append [--backend <name>] --script <script.json> --file <file>\n"
+	    "                               [--output <dump.json>]\n"
 	    "       pcapng-conformance-tool info\n"
 	    "\n"
 	    "read: reads <file> with the given backend (default: legacy) and prints the canonical JSON dump.\n"
 	    "write: runs a write script, writing its file into <dir>, then prints a dump of the result,\n"
 	    "       including a read of the written file.\n"
+	    "append: opens <file> for appending and runs a script's steps on it (the file is modified),\n"
+	    "        then prints a dump of the result, including a read of the file.\n"
 	    "info: prints how the tool was built, as JSON, for the test runner.\n"
 	    "\n"
 	    "  --backend <name>      Backend to run: legacy\n"
 	    "  --all-interfaces      Open with read_all_interfaces set (PcapPlusPlus never sets it)\n"
-	    "  --script <file>       The write script (see conformance/README.md)\n"
+	    "  --script <file>       The write or append script (see conformance/README.md)\n"
+	    "  --file <file>         The existing file to append to\n"
 	    "  --output-dir <dir>    Directory the write script's file is created in\n"
 	    "  --output <dump.json>  Write the dump to a file instead of stdout\n";
 
@@ -61,7 +66,7 @@ namespace
 		nlohmann::ordered_json info;
 		info["formatVersion"] = pcpp::conformance::DumpFormatVersion;
 		info["backends"] = pcpp::conformance::availableBackends();
-		info["operations"] = { "read", "write" };
+		info["operations"] = { "read", "write", "append" };
 		info["zstd"] = hasZstd();
 		// Width of timespec::tv_sec, which the ext API returns packet timestamps in. It is 32 bits on some platforms
 		// (for example 32-bit MinGW), where timestamps after January 2038 wrap around.
@@ -114,6 +119,7 @@ namespace
 		std::string inputPath;
 		std::string scriptPath;
 		std::string outputDir;
+		std::string appendPath;
 		bool readAllInterfaces = false;
 	};
 
@@ -173,6 +179,50 @@ namespace
 		return writeOutput(pcpp::conformance::dumpWriteResult(result, file, file.exists ? &reread : nullptr),
 		                   options.outputPath);
 	}
+
+	int runAppend(pcpp::conformance::Backend& backend, const Options& options)
+	{
+		if (options.scriptPath.empty() || options.appendPath.empty())
+		{
+			return usageError("append needs --script and --file");
+		}
+
+		std::string scriptText;
+		if (!readFile(options.scriptPath, scriptText))
+		{
+			return usageError("could not read the script " + options.scriptPath);
+		}
+		pcpp::conformance::AppendScript script;
+		try
+		{
+			script = pcpp::conformance::parseAppendScript(scriptText);
+		}
+		catch (const pcpp::conformance::ScriptError& error)
+		{
+			return usageError(options.scriptPath + ": " + error.what());
+		}
+
+		pcpp::conformance::AppendResult result = backend.append(options.appendPath, script);
+
+		// Append never compresses, so the bytes are compared even for a .zst file
+		pcpp::conformance::WrittenFile file;
+		std::string contents;
+		file.exists = readFile(options.appendPath, contents);
+		if (file.exists)
+		{
+			file.size = contents.size();
+			file.sha256 =
+			    pcpp::conformance::sha256Hex(reinterpret_cast<const uint8_t*>(contents.data()), contents.size());
+		}
+
+		pcpp::conformance::ReadResult reread;
+		if (file.exists)
+		{
+			reread = backend.read(options.appendPath, false);
+		}
+		return writeOutput(pcpp::conformance::dumpAppendResult(result, file, file.exists ? &reread : nullptr),
+		                   options.outputPath);
+	}
 }  // namespace
 
 int main(int argc, char* argv[])
@@ -193,7 +243,7 @@ int main(int argc, char* argv[])
 	{
 		return argc == 2 ? printInfo() : usageError("info takes no arguments");
 	}
-	if (operation != "read" && operation != "write")
+	if (operation != "read" && operation != "write" && operation != "append")
 	{
 		return usageError("unknown operation '" + operation + "'");
 	}
@@ -211,13 +261,17 @@ int main(int argc, char* argv[])
 		{
 			value = &options.outputPath;
 		}
-		else if (arg == "--script" && operation == "write")
+		else if (arg == "--script" && operation != "read")
 		{
 			value = &options.scriptPath;
 		}
 		else if (arg == "--output-dir" && operation == "write")
 		{
 			value = &options.outputDir;
+		}
+		else if (arg == "--file" && operation == "append")
+		{
+			value = &options.appendPath;
 		}
 
 		if (value != nullptr)
@@ -252,5 +306,9 @@ int main(int argc, char* argv[])
 		return usageError("unknown backend '" + options.backendName + "'");
 	}
 
-	return operation == "read" ? runRead(*backend, options) : runWrite(*backend, options);
+	if (operation == "read")
+	{
+		return runRead(*backend, options);
+	}
+	return operation == "write" ? runWrite(*backend, options) : runAppend(*backend, options);
 }

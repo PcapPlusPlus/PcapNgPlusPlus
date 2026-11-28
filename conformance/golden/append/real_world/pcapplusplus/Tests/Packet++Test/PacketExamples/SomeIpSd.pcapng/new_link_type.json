@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 680,
+    "sha256": "e7f92f96476b2eeaa3aa45ed81be171849069b51b01f0f984ab3278961112109"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": null,
+      "userAppDesc": null,
+      "interfaces": []
+    },
+    "packetCount": 4,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1665497288,"timestampNsec":1000,"capturedLength":106,"originalLength":106,"comment":null,"data":"01005e40fffb0054afe9d1c08100004908004500005400004000ff11248fa030c71cefc0fffb771a771a0040c0dcffff8100000000300000000201010200c00000000000001001000010d05f000201000003000000000000000c00090400a030c71c001177266ac107fc"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1665497288,"timestampNsec":2000,"capturedLength":227,"originalLength":227,"comment":null,"data":"333300040000027dfa0010018100000286dd6000000000a911fefd537cb80383000400000000000101e5ff140000000000000000000000040000771a771a00a9f0a8ffff8100000000990000000201010200e00000000000001001000020fffe000105000078000000000000007500150600fd537cb80383000400000000000101e500067449005a01001063617465676f72793d627269646765640c6c3670726f746f3d76697769216f74686572736572763d4164617074697665437275697365417373697374484d4909747874766572733d310d76657273696f6e3d352e302e3000"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1665497288,"timestampNsec":3000,"capturedLength":122,"originalLength":122,"comment":null,"data":"0054afe9d1c20284cf3bbe0081000049080045000064ed3500004011be57a030c765a030c735771a771a0050ff0fffff8100000000400000000301010200c00000000000002006000010d0630001010000030000000106000010d066000101000003000000010000000c00090400a030c7650011e3f6590c785f"},
+      {"interfaceId":1,"linkType":147,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":10,"originalLength":10,"comment":null,"data":"00112233445566778899"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":147,"ticksPerSecond":1000000000}
+    ]
+  }
+}

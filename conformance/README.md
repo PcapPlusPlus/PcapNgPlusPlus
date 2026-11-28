@@ -7,8 +7,10 @@ This directory holds the suite described in [`docs/PLAN.md`](../docs/PLAN.md): a
 | `corpus/` | Input files. Each file is a case; its case ID is its path under `corpus/`. |
 | `corpus/real_world/pcapplusplus/` | Every `.pcapng`/`.zst` file in PcapPlusPlus (see its `SOURCE.md`) |
 | `cases/write/` | Write scripts. Each `.json` file is a case; its case ID is its path under `cases/write/`, without `.json`. |
+| `cases/append/` | Append scripts. Each one runs against every corpus file. |
 | `golden/read/<case ID>/<mode>.json` | The legacy dump of each corpus file, per open mode (`default`, `all_interfaces`). Generated; never edit by hand. |
 | `golden/write/<case ID>.json` | The legacy dump of each write script. Generated; never edit by hand. |
+| `golden/append/<corpus case ID>/<script>.json` | The legacy dump of each append script on each corpus file, plus `missing_file.json`. Generated; never edit by hand. |
 | `tests/` | The pytest suite |
 | `tool/` | `pcapng-conformance-tool` |
 | `third_party/` | Vendored code (nlohmann/json) |
@@ -22,14 +24,15 @@ cd conformance
 python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool
 ```
 
-There are two test functions:
+There are three test functions:
 
 - `test_read` runs once per corpus file and open mode, with IDs like `test_read[real_world/pcapplusplus/Tests/Packet++Test/PacketExamples/igmp.pcapng/default]`.
 - `test_write` runs once per write script, with IDs like `test_write[comments/length_255]`.
+- `test_append` runs once per corpus file and append script, with IDs like `test_append[real_world/.../igmp.pcapng/packets]`. It appends to a copy of the file, because `light_pcapng_open_append()` parses the whole file first and so reaches the same parser paths as reading. `test_append_to_missing_file` covers a file that doesn't exist.
 
 Each run:
 
-1. runs `pcapng-conformance-tool read` or `write` in its own subprocess, with a timeout;
+1. runs `pcapng-conformance-tool read`, `write` or `append` in its own subprocess, with a timeout;
 2. compares stdout with the golden byte for byte, and shows a diff on mismatch.
 
 How the result is judged:
@@ -38,14 +41,15 @@ How the result is judged:
 - **Hang.** A run that doesn't exit within `--case-timeout` seconds becomes the dump `{"hang": true}`, so a legacy hang is recorded like a crash. When the golden already records a hang, the run gets only 3 seconds, enough to confirm it.
 - **No zstd.** These cases are skipped when the tool was built without zstd:
   - `.zst` corpus files;
-  - write scripts that compress or write a `.zst` name. Without zstd, legacy ignores the compression level and the reader doesn't decompress.
+  - write scripts that compress or write a `.zst` name. Without zstd, legacy ignores the compression level and the reader doesn't decompress;
+  - appends to `.zst` corpus files.
 - **32-bit `tv_sec`.** Where `timespec::tv_sec` is 32 bits (32-bit MinGW), legacy can't handle every timestamp. Two kinds of case are strict expected failures there:
   - a case whose golden has a timestamp outside the signed 32-bit range, since those wrap around;
-  - a write case whose script passes a `timestampSec` outside `[0, 2^31)`. Larger values don't fit, and legacy's writer masks `tv_sec` to 32 unsigned bits, so a negative value becomes a date in 2106.
+  - a write or append case whose script passes a `timestampSec` outside `[0, 2^31)`. Larger values don't fit, and legacy's writer masks `tv_sec` to 32 unsigned bits, so a negative value becomes a date in 2106.
 
   Every other case must still pass, and the run fails if a marked case starts passing.
 
-`test_no_stale_read_goldens` and `test_no_stale_write_goldens` fail if a golden has no case left.
+`test_no_stale_read_goldens`, `test_no_stale_write_goldens` and `test_no_stale_append_goldens` fail if a golden has no case left.
 
 | Option | Meaning |
 | --- | --- |
@@ -63,6 +67,7 @@ The tool runs one operation of one backend on one file and prints a canonical JS
 ```bash
 build/conformance/tool/pcapng-conformance-tool read [--backend legacy] [--all-interfaces] [--output dump.json] <file>
 build/conformance/tool/pcapng-conformance-tool write [--backend legacy] --script <script.json> --output-dir <dir> [--output dump.json]
+build/conformance/tool/pcapng-conformance-tool append [--backend legacy] --script <script.json> --file <file> [--output dump.json]
 build/conformance/tool/pcapng-conformance-tool info
 ```
 
@@ -70,7 +75,11 @@ build/conformance/tool/pcapng-conformance-tool info
   1. runs the script through `light_create_file_info()` (or `light_create_default_file_info()`), `light_pcapng_open_write()`, `light_write_packet()`, `light_pcapng_flush()` and `light_pcapng_close()`, writing `<dir>/<fileName>`;
   2. reads the file back with the same backend, as PcapPlusPlus would;
   3. dumps both. The script format is below.
-- `info` prints how the tool was built, for the test runner: `{"formatVersion":1,"backends":["legacy"],"operations":["read","write"],"zstd":true,"timestampSecBits":64}`.
+- `append`:
+  1. opens the existing `<file>` with `light_pcapng_open_append()`, which modifies it;
+  2. runs the script's steps, with the same packet handling as `write`, and closes;
+  3. reads the file back with the same backend, and dumps the result.
+- `info` prints how the tool was built, for the test runner: `{"formatVersion":1,"backends":["legacy"],"operations":["read","write","append"],"zstd":true,"timestampSecBits":64}`.
 
 - `--backend`: only `legacy` exists for now. `NewBackend` arrives in M4.
 - `--all-interfaces`: passes `read_all_interfaces = true` to `light_pcapng_open_read()`. PcapPlusPlus always passes false, but the flag is part of the API.
@@ -89,7 +98,7 @@ The tool is in `tool/`:
 | `Backend.h` | The backend-neutral result types and the `Backend` interface |
 | `LegacyBackend.cpp` | Calls the 11 ext functions the way PcapPlusPlus does |
 | `Dump.cpp` | The canonical JSON writer, using the vendored [nlohmann/json](third_party/README.md) |
-| `Script.cpp` | Parses write scripts |
+| `Script.cpp` | Parses write and append scripts |
 | `Sha256.cpp` | Hashes large packets for the dump |
 
 ## Dump format (version 1)
@@ -212,3 +221,9 @@ Strings (file info and comments) use the dump's convention: code point U+00NN is
 | `opened` | False if `light_pcapng_open_write()` returned null |
 | `file` | Null if no file was created. For an uncompressed file: its size and sha256, so the bytes themselves are compared. For a compressed file, both are null: they depend on the zstd version, which differs between platforms, and `reread` still checks the content. |
 | `reread` | The written file read back with `light_pcapng_open_read()` in default mode, as PcapPlusPlus would; null if there is no file |
+
+## Append scripts
+
+An append script is a JSON file in `cases/append/` with only `description` and `steps`, in the same format as a write script's. A file's info, compression and name come from the file being appended to.
+
+The append dump has the same `opened`, `file` and `reread` fields as the write dump. It adds `fileInfo`: `light_pcang_get_file_info()` right after opening, which shows the interfaces append found while reading the whole file. `file` always has the size and sha256, because append never compresses, even on a `.zst` file.

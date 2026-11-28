@@ -153,6 +153,21 @@ namespace pcpp
 
 				light_write_packet(handle, &header, packet.data.data());
 			}
+
+			void runSteps(light_pcapng_t* handle, const std::vector<WriteStep>& steps)
+			{
+				for (const WriteStep& step : steps)
+				{
+					if (step.kind == WriteStep::Kind::Flush)
+					{
+						light_pcapng_flush(handle);
+					}
+					else
+					{
+						writePacket(handle, step.packet);
+					}
+				}
+			}
 		}  // namespace
 
 		WriteResult LegacyBackend::write(const std::string& path, const WriteScript& script)
@@ -173,19 +188,29 @@ namespace pcpp
 				return result;
 			}
 			result.opened = true;
+			runSteps(handle.get(), script.steps);
+			return result;
+		}
 
-			for (const WriteStep& step : script.steps)
+		AppendResult LegacyBackend::append(const std::string& path, const AppendScript& script)
+		{
+			AppendResult result;
+
+			Handle handle(light_pcapng_open_append(path.c_str()));
+			if (!handle)
 			{
-				if (step.kind == WriteStep::Kind::Flush)
-				{
-					light_pcapng_flush(handle.get());
-				}
-				else
-				{
-					writePacket(handle.get(), step.packet);
-				}
+				return result;
+			}
+			result.opened = true;
+
+			const light_pcapng_file_info* info = light_pcang_get_file_info(handle.get());
+			if (info != nullptr)
+			{
+				result.hasFileInfo = true;
+				result.fileInfo = toFileInfo(*info);
 			}
 
+			runSteps(handle.get(), script.steps);
 			return result;
 		}
 	}  // namespace conformance

@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": "CLIENT_RANDOM E39B5BF4903C68684E8512FB2F60213E9EE843A0810B4982B607914D8092D482 95A5D39B02693BC1FB39254B179E9293007F6D37C66172B1EE4EF0D5E25CE1DABE878B6143DC3B266883E51A75E99DF9                                                   ",
+    "hardwareDesc": null,
+    "osDesc": "Linux 3.18.1-1-ARCH",
+    "userAppDesc": "Dumpcap (Wireshark) 1.99.1 (Git Rev Unknown from unknown)",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 620,
+    "sha256": "579e5383f7bbd67bd5a110a62b60fea5963b12748a100e05762adeade66b7b51"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": "CLIENT_RANDOM E39B5BF4903C68684E8512FB2F60213E9EE843A0810B4982B607914D8092D482 95A5D39B02693BC1FB39254B179E9293007F6D37C66172B1EE4EF0D5E25CE1DABE878B6143DC3B266883E51A75E99DF9                                                   ",
+      "hardwareDesc": null,
+      "osDesc": "Linux 3.18.1-1-ARCH",
+      "userAppDesc": "Dumpcap (Wireshark) 1.99.1 (Git Rev Unknown from unknown)",
+      "interfaces": []
+    },
+    "packetCount": 2,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1422527998,"timestampNsec":578402281,"capturedLength":74,"originalLength":74,"comment":null,"data":"00000000000000000000000008004500003c470840004006f5b17f0000017f0000019d700ceafffb368c00000000a002aaaafe3000000204ffd70402080a282b71840000000001030307"},
+      {"interfaceId":1,"linkType":147,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":10,"originalLength":10,"comment":null,"data":"00112233445566778899"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000000},
+      {"linkType":147,"ticksPerSecond":1000000000}
+    ]
+  }
+}

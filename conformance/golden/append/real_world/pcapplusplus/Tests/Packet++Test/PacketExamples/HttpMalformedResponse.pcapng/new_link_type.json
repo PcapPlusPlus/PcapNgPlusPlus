@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 704,
+    "sha256": "9bd8cf368568c2dbaf358215371378d80b2499414b418c8d4b1a11b77b9e9543"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": null,
+      "userAppDesc": null,
+      "interfaces": []
+    },
+    "packetCount": 2,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1361428029,"timestampNsec":627616000,"capturedLength":545,"originalLength":545,"comment":null,"dataSha256":"b39e1c74cffd0196325434ca1464721958439004d1f6b5340e0bc893421911b5"},
+      {"interfaceId":1,"linkType":147,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":10,"originalLength":10,"comment":null,"data":"00112233445566778899"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":147,"ticksPerSecond":1000000000}
+    ]
+  }
+}

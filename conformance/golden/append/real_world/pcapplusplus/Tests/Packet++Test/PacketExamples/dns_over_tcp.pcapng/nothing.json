@@ -1,0 +1,48 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": "64-bit Windows 10 (2004), build 19041",
+    "userAppDesc": "Mergecap (Wireshark) 3.4.1 (v3.4.1-0-g1a27f405875f)",
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 1888,
+    "sha256": "5bf908cb022d7150ae45d001be0fb59ad2a9e460a8e24c3276b697dc613ff889"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": "64-bit Windows 10 (2004), build 19041",
+      "userAppDesc": "Mergecap (Wireshark) 3.4.1 (v3.4.1-0-g1a27f405875f)",
+      "interfaces": []
+    },
+    "packetCount": 4,
+    "packets": [
+      {"interfaceId":2,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":130,"originalLength":130,"comment":null,"data":"8cec4bca165acc40d0c2f26286dd64000000004c063a20010558feed00000000000000000001260106474b021d20b1d3e782aec825110035ddb053b9572aed778b595018001030d6000000360038818000010001000000000667697468756203636f6d00000100010667697468756203636f6d0000010001000000200004c01eff71"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1608102334,"timestampNsec":10346000,"capturedLength":110,"originalLength":110,"comment":null,"data":"000a49a99601f01c2d708923080045000060dcac400039061a3367e6ea64a51553585cd700357cb5f671a0ae7b8b80187210a75700000101080a22152ada6a5e4e35002a61650110000100000000000109636f6c652d74656368036e657400001c00010000290200000080000000"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1608102334,"timestampNsec":10349000,"capturedLength":1201,"originalLength":1201,"comment":null,"dataSha256":"a01d10b5c93ce2a6c033c9f7d40f02a2a54cfbfee6ad49228966b95337f0fcb0"},
+      {"interfaceId":1,"linkType":1,"timestampSec":1614156838,"timestampNsec":745364000,"capturedLength":120,"originalLength":120,"comment":null,"data":"8cec4bca165acc40d0c2f26286dd640000000042063a20010558feed00000000000000000001260106474b021d20b1d3e782aec825110035ddb053b9572aed778b59501800107ba10000002c0038818000010001000000000667697468756203636f6d0000010001c00c00010001000000200004c01eff71"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":1,"ticksPerSecond":1000000}
+    ]
+  }
+}

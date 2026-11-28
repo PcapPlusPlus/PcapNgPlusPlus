@@ -1,0 +1,53 @@
+{
+  "formatVersion": 1,
+  "operation": "append",
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":113,"ticksPerSecond":1000000},
+      {"linkType":276,"ticksPerSecond":1000000}
+    ]
+  },
+  "file": {
+    "compressed": false,
+    "size": 2140,
+    "sha256": "b81cc33dddff1e4c8a2fa939587590add6915e994d8ba574e70f9cd7ab88054c"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": null,
+      "userAppDesc": null,
+      "interfaces": []
+    },
+    "packetCount": 9,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":21,"originalLength":21,"comment":null,"data":"000000000000000000000000810000010806aabbcc"},
+      {"interfaceId":1,"linkType":113,"timestampSec":0,"timestampNsec":0,"capturedLength":19,"originalLength":19,"comment":null,"data":"00000001000000000000000000000806aabbcc"},
+      {"interfaceId":2,"linkType":276,"timestampSec":0,"timestampNsec":0,"capturedLength":23,"originalLength":23,"comment":null,"data":"0806000000000001000100000000000000000000aabbcc"},
+      {"interfaceId":1,"linkType":113,"timestampSec":0,"timestampNsec":0,"capturedLength":17,"originalLength":17,"comment":null,"data":"00000001000000000000000000008100aa"},
+      {"interfaceId":2,"linkType":276,"timestampSec":0,"timestampNsec":0,"capturedLength":21,"originalLength":21,"comment":null,"data":"8100000000000001000100000000000000000000aa"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":39,"originalLength":39,"comment":null,"data":"00000000000000000000000008004500001900000000402f0000010101010202020200008100aa"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":19,"originalLength":19,"comment":null,"data":"000000000000000000000000810000018100aa"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":60,"originalLength":60,"comment":"appended","data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b"},
+      {"interfaceId":0,"linkType":1,"timestampSec":0,"timestampNsec":0,"capturedLength":1514,"originalLength":9000,"comment":null,"dataSha256":"05954e40a82511cf2db9f9f9d66a6d12d7cda0dec98aa1792c6fa06e35eb9081"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000},
+      {"linkType":113,"ticksPerSecond":1000000},
+      {"linkType":276,"ticksPerSecond":1000000}
+    ]
+  }
+}
