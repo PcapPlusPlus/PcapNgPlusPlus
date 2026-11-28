@@ -1,8 +1,10 @@
-"""Append to every corpus file with every append script, and compare the dump with the golden recorded from legacy.
+"""Append to every committed corpus file with every append script, and compare the dump with the golden recorded
+from legacy.
 
-light_pcapng_open_append() reads the whole file first, so appending runs the parser over the entire read corpus. The
-dump covers whether the open succeeded, the file info it found, the resulting file's size and sha256, and a read of
-the file afterwards.
+light_pcapng_open_append() reads the whole file first, so appending runs the parser over the committed corpus. The
+generated cases are left out: test_read already runs the parser over them, and appending to each would only multiply
+goldens. The dump covers whether the open succeeded, the file info it found, the resulting file's size and sha256,
+and a read of the file afterwards.
 """
 
 import shutil
@@ -14,8 +16,8 @@ from conftest import (
     append_scripts,
     case_timeout,
     check_no_stale_goldens,
+    committed_corpus_cases,
     compare_with_golden,
-    corpus_cases,
     expect_failure_if_timestamps_overflow,
     is_zstd_case,
     script_timestamps,
@@ -33,7 +35,7 @@ def golden_path(case_id, script_name):
 def append_cases():
     return [
         pytest.param(case_id, path, name, script, id=f"{case_id}/{name}")
-        for case_id, path in corpus_cases()
+        for case_id, path in committed_corpus_cases()
         for name, script in append_scripts()
     ]
 
@@ -61,6 +63,6 @@ def test_append_to_missing_file(tool, backend, regen_golden, tmp_path):
 
 def test_no_stale_append_goldens(regen_golden):
     """Every append golden belongs to a case. With --regen-golden, stale ones are deleted instead."""
-    expected = {golden_path(case_id, name) for case_id, _ in corpus_cases() for name, _ in append_scripts()}
+    expected = {golden_path(case_id, name) for case_id, _ in committed_corpus_cases() for name, _ in append_scripts()}
     expected.add(MISSING_FILE_GOLDEN)
     check_no_stale_goldens(APPEND_GOLDEN_DIR, expected, regen_golden)

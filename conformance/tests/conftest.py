@@ -3,11 +3,18 @@
 import difflib
 import json
 import pathlib
+import shutil
 import subprocess
+import sys
+import tempfile
 
 import pytest
 
 CONFORMANCE_DIR = pathlib.Path(__file__).resolve().parent.parent
+
+# The generator package lives in conformance/
+sys.path.insert(0, str(CONFORMANCE_DIR))
+from generator.__main__ import generate  # noqa: E402
 CORPUS_DIR = CONFORMANCE_DIR / "corpus"
 WRITE_CASES_DIR = CONFORMANCE_DIR / "cases" / "write"
 APPEND_CASES_DIR = CONFORMANCE_DIR / "cases" / "append"
@@ -41,12 +48,50 @@ def pytest_addoption(parser):
     group.addoption(
         "--case-timeout", type=float, default=10.0, help="seconds before a case counts as hung (default: 10)"
     )
+    group.addoption(
+        "--generated-dir",
+        help="write the generated cases here and keep them, instead of in a temporary directory (for debugging)",
+    )
+
+
+# Where the generator wrote its cases for this run, set by pytest_configure
+_generated = {"dir": None, "temporary": False, "cases": []}
+
+
+def pytest_configure(config):
+    """Generates the corpus once, before collection, since the generated cases are test parameters."""
+    if config.getoption("--generated-dir", default=None):
+        directory = pathlib.Path(config.getoption("--generated-dir")).resolve()
+        if directory.exists():
+            shutil.rmtree(directory)
+        _generated["temporary"] = False
+    else:
+        directory = pathlib.Path(tempfile.mkdtemp(prefix="pcapng-generated-"))
+        _generated["temporary"] = True
+    _generated["dir"] = directory
+    _generated["cases"] = generate(directory)
+
+
+def pytest_unconfigure(config):
+    if _generated["temporary"] and _generated["dir"]:
+        shutil.rmtree(_generated["dir"], ignore_errors=True)
+
+
+def committed_corpus_cases():
+    """Every committed corpus file, as (case ID, path), in a stable order. The case ID is the path relative to
+    corpus/."""
+    paths = (p for p in CORPUS_DIR.rglob("*") if p.is_file() and p.name.endswith(CASE_SUFFIXES))
+    return sorted((p.relative_to(CORPUS_DIR).as_posix(), p) for p in paths)
+
+
+def generated_cases():
+    """Every generated file, as (case ID, path); case IDs start with generated/."""
+    return list(_generated["cases"])
 
 
 def corpus_cases():
-    """Every corpus file, as (case ID, path), in a stable order. The case ID is the path relative to corpus/."""
-    paths = (p for p in CORPUS_DIR.rglob("*") if p.is_file() and p.name.endswith(CASE_SUFFIXES))
-    return sorted((p.relative_to(CORPUS_DIR).as_posix(), p) for p in paths)
+    """The committed corpus and the generated cases, in a stable order."""
+    return sorted(committed_corpus_cases() + generated_cases())
 
 
 def is_zstd_case(case_id):

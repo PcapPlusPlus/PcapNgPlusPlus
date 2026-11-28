@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": false,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": null,
+    "userAppDesc": null,
+    "interfaces": []
+  },
+  "packetCount": 9,
+  "packets": [
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":0,"originalLength":0,"comment":null,"data":""},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":1000,"capturedLength":1,"originalLength":1,"comment":null,"data":"00"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":2000,"capturedLength":2,"originalLength":2,"comment":null,"data":"0001"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":3000,"capturedLength":3,"originalLength":3,"comment":null,"data":"000102"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":4000,"capturedLength":4,"originalLength":4,"comment":null,"data":"00010203"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":5000,"capturedLength":5,"originalLength":5,"comment":null,"data":"0001020304"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":6000,"capturedLength":6,"originalLength":6,"comment":null,"data":"000102030405"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":7000,"capturedLength":7,"originalLength":7,"comment":null,"data":"00010203040506"},
+    {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":8000,"capturedLength":8,"originalLength":8,"comment":null,"data":"0001020304050607"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":1,"ticksPerSecond":1000000}
+  ]
+}

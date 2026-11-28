@@ -21,7 +21,7 @@ LightPcapNg's own `src/tests/` is out of scope too. `light_manipulate.c` is only
 **Success criteria**
 
 - Every case matches the golden output, except cases listed in `divergences.yaml`.
-- Over 95% branch coverage of the legacy code that is reachable from the 11 functions, with every remaining gap explained. Codecov shows coverage of all of LightPcapNg, so this is measured over the reachable functions only; their maximum share of all lines is about 66%.
+- Every line and branch of the legacy code reachable from the 11 functions is covered, or listed with the reason no input reaches it, such as null-argument checks the ext functions never trigger, allocation failures, or `sizeof` comparisons that are constant on a platform. About 83% of reachable branches can be covered at most, so a percentage target would be unreachable. Codecov shows coverage of all of LightPcapNg; the reachable functions are about 66% of its lines.
 - Zero leaks and zero sanitizer reports on the full corpus, for both implementations.
 - New code's peak heap is at most 110% of legacy's, per case; allocations per packet in steady state are at most legacy's.
 - New code's throughput is at least 95% of legacy's on every benchmark.
@@ -33,7 +33,7 @@ Inputs are designed from two angles: the pcapng spec (everything a file can cont
 
 ### Axis 1: the spec
 
-A table-driven Python generator, built from draft-ietf-opsawg-pcapng, emits every block type and every option code defined for each block. That means generic options, SHB, IDB, EPB, ISB and NRB options, and custom options 2988, 2989, 19372 and 19373. Each combination is generated in these variants:
+A table-driven Python generator, built from draft-ietf-opsawg-pcapng, emits block types and option codes defined for each block. M1 covers SHB, IDB, EPB and SPB; M2 adds the variants below where they reach new legacy code or behavior (see M2). That means generic options, SHB, IDB, EPB, ISB and NRB options, and custom options 2988, 2989, 19372 and 19373. Each combination is generated in these variants:
 
 - **Option length:** 0, 1, 2, 3, 4 (to test padding), exactly the space remaining, and the space remaining + 1.
 - **Option structure:** `opt_endofopt` missing, `opt_endofopt` followed by trailing junk, option code 0 in the middle, duplicate options.
@@ -130,10 +130,10 @@ conformance/
 ├── README.md               # running the suite, tool usage, dump and script formats
 ├── requirements.txt        # pytest
 ├── pytest.ini
-├── generator/              # (M1, planned) Python: spec tables -> deterministic corpus + manifest
+├── generator/              # Python: spec tables -> deterministic corpus + manifest
 │   ├── pcapng_spec.py      # block types and option codes
-│   ├── builder.py          # block/option writer: endianness, padding, bad lengths
-│   └── cases/              # case families: options, blocks, truncation, tsresol, sections...
+│   ├── builder.py          # block/option writer: byte order, padding, length overrides
+│   └── cases/              # case families: shb, idb, epb, spb (M1); malformed families in M2
 ├── corpus/
 │   ├── real_world/
 │   │   └── pcapplusplus/   # PcapPlusPlus's 23 test files, at their PcapPlusPlus paths
@@ -156,7 +156,7 @@ conformance/
 │   └── main.cpp            # read, write, append, info
 ├── third_party/nlohmann/   # json.hpp 3.11.3, vendored
 ├── memshim/                # (planned) LD_PRELOAD malloc counter (Linux)
-└── tests/                  # pytest: test_read, test_write, test_append; metamorphic and differential planned
+└── tests/                  # pytest: test_read, test_write, test_append, test_generator; differential planned
 bench/                      # (planned) Google Benchmark, both backends
 fuzz/                       # (planned) FuzzPcapNgDiff.cpp
 scripts/sync-legacy.sh      # copy legacy from a PcapPlusPlus commit, then regen goldens
@@ -205,14 +205,14 @@ The format is specified in `conformance/README.md`. Its main properties:
 
 ### pytest layer
 
-- (Planned) A session fixture runs the generator into a temp directory. Generated `.pcapng` files are not committed.
+- At startup, pytest runs the generator into a temporary directory (or `--generated-dir`), and `test_read` reads its files with the committed corpus. Generated `.pcapng` files are not committed; their goldens are.
 - One subprocess per case and operation, so crashes and hangs are reported per case.
 - Test IDs look like `test_read[real_world/pcapplusplus/.../igmp.pcapng/default]`, `test_write[comments/length_255]` and `test_append[real_world/.../igmp.pcapng/packets]`.
 - Modules:
-  - existing: `test_read`, `test_write`, `test_append`, each with a stale-golden check;
-  - planned: `test_metamorphic`, and `test_differential` (skipped when legacy isn't built).
+  - existing: `test_read`, `test_write`, `test_append`, each with a stale-golden check, and `test_generator` (determinism, python-pcapng cross-check, exact bytes);
+  - planned: the metamorphic check in M2, and `test_differential` (skipped when legacy isn't built).
 - Options:
-  - existing: `--tool-path`, `--backend`, `--regen-golden`, `--case-timeout` (default 10 seconds, 3 when the golden is a hang);
+  - existing: `--tool-path`, `--backend`, `--regen-golden`, `--case-timeout` (default 10 seconds, 3 when the golden is a hang), `--generated-dir`;
   - planned: `--sanitizer-mode`.
 - Platform rules:
   - cases that need zstd are skipped on builds without it;
@@ -282,7 +282,7 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 ### M1: Skeleton, end to end
 
 - [x] `legacy/` copied from PcapPlusPlus, `UPSTREAM_COMMIT` recorded, `scripts/sync-legacy.sh`
-- [ ] Generator: `builder.py` and spec tables for SHB, IDB, EPB, SPB, with generated files fed through `test_read`
+- [x] Generator: `builder.py` and spec tables for SHB, IDB, EPB, SPB, with generated files fed through `test_read` (54 valid cases; determinism, python-pcapng cross-check and exact-byte tests)
 - [x] Tool with `LegacyBackend` and canonical JSON dump (read only)
 - [x] pytest runner with per-case subprocess, golden compare, `--regen-golden`
 - [x] PcapPlusPlus's existing 23 `.pcapng`/`.zst` fixtures pass through the loop, on every CI platform that can run the tool
@@ -290,19 +290,19 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 
 ### M2: Full corpus
 
-- [ ] All spec block types and option codes, with length, structure and byte-order variants
-- [ ] Metamorphic tests for uninterpreted options
-- [ ] One case family per row of the Axis 2 table
-- [ ] Truncation at every byte and bit flips in length fields
+- [ ] Coverage upload from a build without zstd, for the `light_compression.c` fallbacks (≈ +5 reachable lines)
+- [ ] One case family per row of the Axis 2 table, with variants for the six options legacy interprets and a metamorphic test for options it ignores (≈ +37 reachable lines)
+- [ ] Truncation at every byte of a few small base files, and bit flips in length fields (≈ +9 reachable lines)
 - [x] Write operation with `WriteScript` cases (56 cases: file info, packets, comments, timestamps, flush, compression, open failure)
 - [x] Append operation: 3 append scripts × every corpus file, plus a missing file (70 cases)
-- [ ] Real-world corpus imported, licenses checked (PcapPlusPlus's files are in; Wireshark, libpcap and pcapng-test-generator remain)
+
+Moved out of M2: every spec block type and option code in every variant, and the real-world corpus. Legacy parses most blocks and options through the same generic code, so they add almost no coverage. The differential fuzzer (M4) covers their behavioral risk more cheaply, with Wireshark, libpcap and pcapng-test-generator files as its seeds.
 
 ### M3: Measure the baseline
 
 - [x] Coverage job: gcovr over all of `legacy/LightPcapNg`, uploaded to Codecov on every PR
 - [ ] Second coverage upload from a build without zstd, for the `light_compression.c` fallbacks
-- [ ] Close coverage gaps until over 95% of reachable branches are covered (now 68.8%; most of the gap needs the generator)
+- [ ] Every reachable line and branch covered or listed with a reason (now 90.3% of lines and 69.6% of branches; most of the gap needs the M2 families)
 - [x] Inputs where legacy crashes or hangs are recorded as `crash` and `hang` goldens
 - [ ] ASan, LSan and UBSan job over the full corpus
 - [ ] Memory shim and legacy baselines committed
@@ -312,7 +312,7 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 ### M4: New implementation
 
 - [ ] `NewBackend` wired into the tool
-- [ ] Differential fuzz target running nightly
+- [ ] Differential fuzz target running nightly, seeded with the corpus plus Wireshark, libpcap and pcapng-test-generator files (licenses checked)
 - [ ] All goldens and divergences pass, memory and performance gates pass
 - [ ] Coverage of new code reviewed for untested branches
 
@@ -368,3 +368,7 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 | 2026-11-28 | A hang is recorded as `{"hang": true}`, like a crash, with a 10-second default timeout and 3 seconds when the golden is a hang | Legacy hangs on some inputs; recording it documents the bug and gives the new code a target, without slowing every run |
 | 2026-11-28 | Append cases run every append script against a copy of every corpus file, and the tool reads the result back | `light_pcapng_open_append()` parses the whole file first, so this runs the parser over the whole read corpus, as the plan requires |
 | 2026-11-28 | Plan updated after M1 and the write and append paths: status columns, the actual layout and interfaces, and the reachable-code list | Keep the plan describing what exists, and mark what is still planned |
+| 2026-11-28 | The generator's builder is our own (`struct`-based), and python-pcapng is a test-only dependency that cross-checks valid generated files | No library writes the malformed files M2 needs; an independent parser catches builder bugs that would otherwise go into goldens unnoticed |
+| 2026-11-28 | Append runs over the committed corpus only, not the generated cases | `test_read` already parses the generated files; appending to each would multiply goldens without reaching new code |
+| 2026-11-28 | M2 trimmed to the Axis 2 families (with interpreted-option variants and a metamorphic test), truncation and bit flips, and a zstd-off coverage upload; full spec tables and the real-world corpus move to M4's fuzzing | They add almost no coverage; the differential fuzzer covers their behavioral risk more cheaply |
+| 2026-11-28 | Success criterion: every reachable line and branch covered or explained, instead of "over 95% of reachable branches" | About 67 reachable branches can't be reached by any input, which caps branch coverage near 83% |
