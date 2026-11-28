@@ -228,8 +228,8 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 - [x] `legacy/` copied from PcapPlusPlus, `UPSTREAM_COMMIT` recorded, `scripts/sync-legacy.sh`
 - [ ] Generator: `builder.py` and spec tables for SHB, IDB, EPB, SPB
 - [x] Tool with `LegacyBackend` and canonical JSON dump (read only)
-- [ ] pytest runner with per-case subprocess, golden compare, `--regen-golden`
-- [ ] PcapPlusPlus's existing 11 `.pcapng`/`.zst` fixtures pass through the loop
+- [x] pytest runner with per-case subprocess, golden compare, `--regen-golden`
+- [x] PcapPlusPlus's existing 23 `.pcapng`/`.zst` fixtures pass through the loop, on every CI platform that can run the tool
 - [x] Top-level CMake and a first CI workflow (build only; tests get added as they land)
 
 ### M2: Full corpus
@@ -292,3 +292,8 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 | 2026-11-28 | The tool uses nlohmann/json 3.11.3, vendored as a single header in `conformance/third_party/` (the copy PcapPlusPlus bundles) | Write cases will be JSON files the tool must parse, and a library gets escaping right; vendoring needs no network at configure time |
 | 2026-11-28 | Dumps put each packet and interface on one compact line | A golden diff points at the packet that changed |
 | 2026-11-28 | The tool has its own small SHA-256 | PcapPlusPlus's bundled hash library has only MD5, and a crypto dependency for one hash isn't worth it |
+| 2026-11-28 | All 23 PcapPlusPlus `.pcapng`/`.zst` files go in the corpus, at their PcapPlusPlus paths under `corpus/real_world/pcapplusplus/` | They are small (about 156 KB), Unlicense-licensed, and each can be traced to the PcapPlusPlus test that uses it |
+| 2026-11-28 | A case ID is the file's path under `corpus/`, and its goldens are `golden/read/<case ID>/<mode>.json`, one per open mode | `pcapng-example.pcapng` and `pcapng-example.pcapng.zst` share a directory, so the extension has to be part of the ID |
+| 2026-11-28 | A crash is recorded as `{"crash": true}`, without exit code or signal | Exit codes and signals differ between platforms; the failure message still shows them |
+| 2026-11-28 | `pcapng-conformance-tool info` reports the backends and whether zstd is built in; pytest skips `.zst` cases without it, and `--regen-golden` refuses to run without it | Builds without zstd can't read `.zst` files, and goldens must never be recorded from one |
+| 2026-11-28 | `.gitattributes` keeps goldens and corpus files byte-exact | A Windows checkout with `core.autocrlf` would otherwise turn goldens into CRLF |

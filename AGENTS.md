@@ -57,19 +57,30 @@ This builds two things:
 
 The default build type is Release, as in PcapPlusPlus. Generate goldens only from a Release build, because a Debug build lets legacy's `assert()` calls abort on some malformed inputs.
 
-There is no pytest suite yet. Once it exists, it will run with something like `cd conformance && python3 -m pytest --tool-path ../build/...`.
+To run the conformance suite:
+
+```bash
+python3 -m pip install -r conformance/requirements.txt
+cd conformance
+python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool                 # compare with goldens
+python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool --regen-golden  # rewrite goldens
+```
+
+- **Write `--tool-path=<path>` with `=`.** With a space and no test path, pytest takes the tool path for a test path and doesn't find the suite.
+- **Multi-config generators** (Visual Studio) put the tool in `build/conformance/tool/Release/`.
+- **Regenerate goldens only from a Release build with zstd.** `--regen-golden` refuses to run otherwise. Review the golden diff before committing.
 
 `conformance/.clang-format` is a copy of PcapPlusPlus's config. Format with `clang-format` 19.1.6; `pip install clang-format==19.1.6` provides it.
 
 To sync `legacy/` with PcapPlusPlus:
 
 ```bash
-scripts/sync-legacy.sh [--repo <path-or-url>] [<ref>]   # default: seladb/PcapPlusPlus master
-git add -f legacy                                       # -f: some upstream files match .gitignore patterns
+scripts/sync-legacy.sh [--repo <path-or-url>] [<ref>]   # default: seladb/PcapPlusPlus master; also regenerates goldens
+git add -f legacy conformance/golden                    # -f: some upstream files match .gitignore patterns
 scripts/sync-legacy.sh --check                          # exit 1 if legacy/ differs from upstream
 ```
 
-CI (`.github/workflows/build.yml`) builds on PcapPlusPlus's platform matrix: Linux (PcapPlusPlus Docker images, GCC and Intel icx), macOS (arm64 and x86_64), Visual Studio (Win32, x64, ARM64), MinGW-w64, FreeBSD and Android. zstd is on where the platform provides it. A separate job warns when `legacy/` falls behind PcapPlusPlus `master`.
+CI (`.github/workflows/build.yml`) builds on PcapPlusPlus's platform matrix: Linux (PcapPlusPlus Docker images, GCC and Intel icx), macOS (arm64 and x86_64), Visual Studio (Win32, x64, ARM64), MinGW-w64, FreeBSD and Android. zstd is on where the platform provides it. Every job that can run the tool also runs the conformance suite; Android and the macOS cross-compile only build. A separate job warns when `legacy/` falls behind PcapPlusPlus `master`.
 
 ## Before opening a PR
 

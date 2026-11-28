@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": false,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": "File created by merging: \nFile1: bluetoothHciInquiryCompleteWithPhdr.pcap \nFile2: bluetoothHciInquiryComplete.pcap \nFile3: bluetoothHciCommandStatusWithPhdr.pcap \n",
+    "hardwareDesc": null,
+    "osDesc": "macOS 26.6.2, build 25G83 (Darwin 25.6.0)",
+    "userAppDesc": "Mergecap (Wireshark) 4.6.9 (v4.6.9-0-g2d548b197c75)",
+    "interfaces": []
+  },
+  "packetCount": 3,
+  "packets": [
+    {"interfaceId":0,"linkType":201,"timestampSec":1136239445,"timestampNsec":0,"capturedLength":8,"originalLength":8,"comment":null,"data":"0000000104010100"},
+    {"interfaceId":1,"linkType":187,"timestampSec":1136239445,"timestampNsec":0,"capturedLength":4,"originalLength":4,"comment":null,"data":"04010100"},
+    {"interfaceId":2,"linkType":201,"timestampSec":1136239445,"timestampNsec":0,"capturedLength":11,"originalLength":11,"comment":null,"data":"00000001040f0400010104"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":201,"ticksPerSecond":1000000},
+    {"linkType":187,"ticksPerSecond":1000000},
+    {"linkType":201,"ticksPerSecond":1000000}
+  ]
+}

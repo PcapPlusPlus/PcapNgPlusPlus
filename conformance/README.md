@@ -1,14 +1,54 @@
 # Conformance suite
 
-This directory will hold the corpus generator, goldens and pytest suite described in [`docs/PLAN.md`](../docs/PLAN.md). Right now it holds the tool they're built on.
+This directory holds the suite described in [`docs/PLAN.md`](../docs/PLAN.md): a corpus of pcapng files, goldens recorded from legacy, a tool that dumps what a backend exposes, and a pytest runner that compares the two. The corpus generator comes later.
+
+| Path | What |
+| --- | --- |
+| `corpus/` | Input files. Each file is a case; its case ID is its path under `corpus/`. |
+| `corpus/real_world/pcapplusplus/` | Every `.pcapng`/`.zst` file in PcapPlusPlus (see its `SOURCE.md`) |
+| `golden/read/<case ID>/<mode>.json` | The legacy dump of each case, per open mode (`default`, `all_interfaces`). Generated; never edit by hand. |
+| `tests/` | The pytest suite |
+| `tool/` | `pcapng-conformance-tool` |
+| `third_party/` | Vendored code (nlohmann/json) |
+
+## Running the suite
+
+```bash
+cmake -S . -B build -DLIGHT_PCAPNG_ZSTD=ON && cmake --build build
+python3 -m pip install -r conformance/requirements.txt
+cd conformance
+python3 -m pytest --tool-path=../build/conformance/tool/pcapng-conformance-tool
+```
+
+`test_read` runs once per corpus file and open mode, as IDs like `test_read[real_world/pcapplusplus/Tests/Packet++Test/PacketExamples/igmp.pcapng/default]`. Each run:
+
+1. runs `pcapng-conformance-tool read` in its own subprocess, with a timeout;
+2. compares stdout with the golden byte for byte, and shows a diff on mismatch.
+
+How the result is judged:
+
+- **Crash.** A non-zero exit other than a tool error, or a signal, becomes the dump `{"crash": true}`. A crash passes only if the golden records one. The failure message shows the exit code and stderr.
+- **Hang.** A run that doesn't exit within `--case-timeout` seconds fails the case.
+- **No zstd.** `.zst` cases are skipped when the tool was built without zstd.
+
+`test_no_stale_read_goldens` fails if a golden has no corpus case left.
+
+| Option | Meaning |
+| --- | --- |
+| `--tool-path=<path>` | The tool executable (required). Use `=`: with a space and no test path, pytest takes the value for a test path. |
+| `--backend=<name>` | Backend to test (default: `legacy`) |
+| `--regen-golden` | Write the goldens instead of comparing, and delete stale ones. Legacy backend only; needs a Release build with zstd. |
+| `--case-timeout=<seconds>` | Per-run timeout (default: 60) |
+
+A golden records whatever legacy does, bugs included. For example, `pcapng-example.pcapng.zst` in `all_interfaces` mode has 0 packets, because of the rewind bug in `docs/PLAN.md`. A deliberate fix in the new code will go in `divergences.yaml`; the golden is never edited to match the fix.
 
 ## pcapng-conformance-tool
 
-The tool runs one operation of one backend on one file and prints a canonical JSON dump of everything the backend exposed through the ext API. The pytest suite will run it once per case in a subprocess, so a crash or hang only fails that case.
+The tool runs one operation of one backend on one file and prints a canonical JSON dump of everything the backend exposed through the ext API. The pytest suite runs it once per case in a subprocess, so a crash or hang only fails that case.
 
 ```bash
-cmake -S . -B build && cmake --build build
 build/conformance/tool/pcapng-conformance-tool read [--backend legacy] [--all-interfaces] [--output dump.json] <file>
+build/conformance/tool/pcapng-conformance-tool info    # {"formatVersion":1,"backends":["legacy"],"zstd":true}
 ```
 
 - `--backend`: only `legacy` exists for now. `NewBackend` arrives in M4.

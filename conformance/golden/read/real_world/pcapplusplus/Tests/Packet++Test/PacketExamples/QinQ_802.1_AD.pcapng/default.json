@@ -1,0 +1,22 @@
+{
+  "formatVersion": 1,
+  "operation": "read",
+  "readAllInterfaces": false,
+  "opened": true,
+  "fileInfo": {
+    "majorVersion": 1,
+    "minorVersion": 0,
+    "fileComment": null,
+    "hardwareDesc": null,
+    "osDesc": "64-bit Windows 7 Service Pack 1, build 7601",
+    "userAppDesc": "Dumpcap 1.12.1 (v1.12.1-0-g01b65bf from master-1.12)",
+    "interfaces": []
+  },
+  "packetCount": 1,
+  "packets": [
+    {"interfaceId":0,"linkType":1,"timestampSec":1430378523,"timestampNsec":814664000,"capturedLength":1500,"originalLength":1500,"comment":null,"dataSha256":"f4d1b78d11d7ad50fdd215b4e5c8d1ce1f9708516deab790da4549ed5b258c0c"}
+  ],
+  "interfacesAfterRead": [
+    {"linkType":1,"ticksPerSecond":1000000}
+  ]
+}

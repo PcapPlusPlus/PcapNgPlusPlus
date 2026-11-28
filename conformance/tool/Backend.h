@@ -85,5 +85,8 @@ namespace pcpp
 
 		/// Creates the backend called @p name ("legacy"), or returns null if there is no such backend.
 		std::unique_ptr<Backend> createBackend(const std::string& name);
+
+		/// The names createBackend() accepts.
+		std::vector<std::string> availableBackends();
 	}  // namespace conformance
 }  // namespace pcpp
