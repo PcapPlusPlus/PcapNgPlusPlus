@@ -50,9 +50,16 @@ cmake -S . -B build                      # add -DLIGHT_PCAPNG_ZSTD=ON for zstd s
 cmake --build build
 ```
 
-Right now this builds only the legacy library (`light_pcapng_legacy`, an alias of legacy's `light_pcapng` OBJECT library). The legacy library builds with PcapPlusPlus's own `legacy/CMakeLists.txt`, so its sources and flags match what PcapPlusPlus ships.
+This builds two things:
 
-There are no tests yet. Once they exist, they'll run with something like `cd conformance && python3 -m pytest --tool-path ../build/...`.
+- **The legacy library**, `light_pcapng_legacy`, an alias of legacy's `light_pcapng` OBJECT library. It builds with PcapPlusPlus's own `legacy/CMakeLists.txt`, so its sources and flags match what PcapPlusPlus ships.
+- **The conformance tool**, `build/conformance/tool/pcapng-conformance-tool`. Its usage and the dump format are in [`conformance/README.md`](conformance/README.md).
+
+The default build type is Release, as in PcapPlusPlus. Generate goldens only from a Release build, because a Debug build lets legacy's `assert()` calls abort on some malformed inputs.
+
+There is no pytest suite yet. Once it exists, it will run with something like `cd conformance && python3 -m pytest --tool-path ../build/...`.
+
+`conformance/.clang-format` is a copy of PcapPlusPlus's config. Format with `clang-format` 19.1.6; `pip install clang-format==19.1.6` provides it.
 
 To sync `legacy/` with PcapPlusPlus:
 

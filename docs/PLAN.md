@@ -54,6 +54,8 @@ Blocks are dispatched in `parse_by_block_type()` (`light_pcapng.c:100`). It has 
 | Option length validated against remaining space | `__parse_options` | Off by one in each direction, `max_len` ≤ 0 |
 | Raw copy of unknown blocks | `default` case | Block length 12, 13–15, not a multiple of 4, huge |
 | zstd I/O layer | `light_io.c`, zstd | Every block type compressed; frame boundary falling mid-block |
+| `read_all_interfaces` rewinds with `fseek()` on the raw file, which doesn't reset the zstd stream, so a compressed file yields no packets (found by the tool) | `light_pcapng_open_read`, `light_set_pos` | Every `.zst` case with `--all-interfaces` |
+| `assert()` aborts on malformed input in Debug builds only; Release reads through | `light_read_record` | Goldens from Release; non-pcapng and truncated inputs |
 
 Measure branch coverage on both implementations. On legacy, it shows the corpus is complete. On the new code, it flags branches the rewrite added that the spec-driven cases don't reach yet.
 
@@ -129,7 +131,7 @@ If the new code moves into PcapPlusPlus, `src/` and `include/` go there, `confor
 struct PacketRecord { uint32_t ifaceId, capLen, origLen; uint16_t linkType;
                       int64_t tsSec, tsNsec; std::string comment; std::vector<uint8_t> data; };
 struct ReadResult   { bool opened; FileInfo info; std::vector<PacketRecord> packets;
-                      enum { Eof, Error } end; };
+                      std::vector<InterfaceRecord> interfacesAfterRead; };
 
 class Backend {
 public:
@@ -225,7 +227,7 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 
 - [x] `legacy/` copied from PcapPlusPlus, `UPSTREAM_COMMIT` recorded, `scripts/sync-legacy.sh`
 - [ ] Generator: `builder.py` and spec tables for SHB, IDB, EPB, SPB
-- [ ] Tool with `LegacyBackend` and canonical JSON dump (read only)
+- [x] Tool with `LegacyBackend` and canonical JSON dump (read only)
 - [ ] pytest runner with per-case subprocess, golden compare, `--regen-golden`
 - [ ] PcapPlusPlus's existing 11 `.pcapng`/`.zst` fixtures pass through the loop
 - [x] Top-level CMake and a first CI workflow (build only; tests get added as they land)
@@ -283,3 +285,10 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 | 2026-11-27 | Don't port code that PcapPlusPlus can't reach | It's out of scope and only adds risk |
 | 2026-11-27 | `legacy/` is a verbatim copy of all of `3rdParty/LightPcapNg`, including out-of-scope files, built with its own upstream `CMakeLists.txt` | The sync check stays a plain directory diff, and legacy builds exactly as PcapPlusPlus builds it |
 | 2026-11-27 | CI builds on PcapPlusPlus's platform matrix (Linux distros, macOS, Visual Studio, MinGW, FreeBSD, Android), with zstd on where available | The rewrite has to work everywhere PcapPlusPlus ships LightPcapNg today |
+| 2026-11-28 | Default build type is Release, and goldens come from a Release build | That is what PcapPlusPlus ships; in Debug, legacy's `assert()` calls abort on inputs that Release reads through |
+| 2026-11-28 | The read dump has no `end` (`Eof`/`Error`) field | `light_get_next_packet()` returns 0 in both cases, so the API can't tell them apart |
+| 2026-11-28 | The tool fills the packet header with `0xA5` before each read | Fields a backend leaves unwritten become deterministic and visible instead of stack garbage |
+| 2026-11-28 | The dump records the interface table both after open and after the last packet | Interface blocks between packets are picked up by the read loop, and only the second snapshot shows it |
+| 2026-11-28 | The tool uses nlohmann/json 3.11.3, vendored as a single header in `conformance/third_party/` (the copy PcapPlusPlus bundles) | Write cases will be JSON files the tool must parse, and a library gets escaping right; vendoring needs no network at configure time |
+| 2026-11-28 | Dumps put each packet and interface on one compact line | A golden diff points at the packet that changed |
+| 2026-11-28 | The tool has its own small SHA-256 | PcapPlusPlus's bundled hash library has only MD5, and a crypto dependency for one hash isn't worth it |
