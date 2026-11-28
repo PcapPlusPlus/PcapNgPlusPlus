@@ -7,12 +7,13 @@ Case = collections.namedtuple("Case", "case_id description valid build")
 CASES = {}
 
 
-def case(name, description, valid=True):
-    """Registers a case as `generated/<name>.pcapng`. `valid`: the file follows the spec, so an independent parser
-    must read exactly what the case built."""
+def case(name, description, valid=True, suffix=".pcapng"):
+    """Registers a case as `generated/<name><suffix>`. `valid`: the file follows the spec, so an independent parser
+    must read exactly what the case built (its pcapng bytes, before any zstd compression). Use suffix=".pcapng.zst"
+    for compressed cases: legacy decompresses a file whose name contains .zst."""
 
     def register(build):
-        case_id = f"generated/{name}.pcapng"
+        case_id = f"generated/{name}{suffix}"
         if case_id in CASES:
             raise ValueError(f"duplicate case {case_id}")
         CASES[case_id] = Case(case_id, description, valid, build)
@@ -23,6 +24,17 @@ def case(name, description, valid=True):
 
 def all_cases():
     """Every case, in case ID order."""
-    from . import epb, idb, shb, spb  # noqa: F401  (registers the cases)
+    from . import (  # noqa: F401  (registers the cases)
+        blocks,
+        epb,
+        idb,
+        interfaces,
+        options,
+        sections,
+        shb,
+        spb,
+        timestamps,
+        zstd,
+    )
 
     return [CASES[case_id] for case_id in sorted(CASES)]

@@ -94,14 +94,58 @@ class Section:
     byte_order: str = LITTLE_ENDIAN
 
 
+ZSTD_MAGIC = 0xFD2FB528
+ZSTD_MAX_BLOCK = 128 * 1024
+
+
+def zstd_raw_frame(data, block_size=ZSTD_MAX_BLOCK):
+    """A zstd frame holding `data` uncompressed, in Raw_Blocks of `block_size` bytes (RFC 8878).
+
+    Raw blocks need no compressor and give the same bytes with any zstd version. The frame header has no content
+    size, no checksum and no dictionary; its window is 128 KB, the largest block size."""
+    if not 0 < block_size <= ZSTD_MAX_BLOCK:
+        raise ValueError("a zstd block holds 1 to 128 KB")
+    window_descriptor = 7 << 3  # 2^(10 + 7) = 128 KB
+    out = struct.pack("<IBB", ZSTD_MAGIC, 0, window_descriptor)
+    chunks = [data[i : i + block_size] for i in range(0, len(data), block_size)] or [b""]
+    for index, chunk in enumerate(chunks):
+        last = index == len(chunks) - 1
+        header = int(last) | (0 << 1) | (len(chunk) << 3)  # Last_Block, Block_Type 0 (raw), Block_Size
+        out += header.to_bytes(3, "little") + chunk
+    return out
+
+
+@dataclasses.dataclass
+class Zstd:
+    """Compress a file into zstd frames: the pcapng bytes are split at `frame_splits` (offsets) into frames, and each
+    frame into raw blocks of `block_size` bytes. A split or block size inside a record puts a boundary mid-record."""
+
+    frame_splits: List[int] = dataclasses.field(default_factory=list)
+    block_size: int = ZSTD_MAX_BLOCK
+    truncate_at: Optional[int] = None  # Cut the compressed bytes to this many
+
+    def compress(self, data):
+        offsets = [0] + sorted(self.frame_splits) + [len(data)]
+        out = b"".join(zstd_raw_frame(data[a:b], self.block_size) for a, b in zip(offsets, offsets[1:]))
+        return out if self.truncate_at is None else out[: self.truncate_at]
+
+
 @dataclasses.dataclass
 class File:
     sections: List[Section]
     trailer: bytes = b""  # Extra bytes after the last block
+    truncate_at: Optional[int] = None  # Cut the file to this many bytes (before compression)
+    zstd: Optional[Zstd] = None  # Compress into zstd frames; the case ID must then end in .zst
+
+    def pcapng_bytes(self):
+        """The pcapng bytes, before any compression."""
+        out = b"".join(block.to_bytes(s.byte_order) for s in self.sections for block in s.blocks)
+        out += self.trailer
+        return out if self.truncate_at is None else out[: self.truncate_at]
 
     def to_bytes(self):
-        out = b"".join(block.to_bytes(s.byte_order) for s in self.sections for block in s.blocks)
-        return out + self.trailer
+        data = self.pcapng_bytes()
+        return self.zstd.compress(data) if self.zstd else data
 
 
 def single_section(*blocks, byte_order=LITTLE_ENDIAN):
@@ -145,6 +189,23 @@ def epb(data=b"", interface_id=0, timestamp=0, captured_length=None, original_le
 def spb(data=b"", original_length=None):
     original = len(data) if original_length is None else original_length
     return Block(spec.SPB, fields=[("original_length", "I", original)], data=data)
+
+
+def light_custom_block(data=b"", length=None, reserved0=0, reserved1=0, options=()):
+    """LightPcapNg's own custom block (0xB16B00B5): a data length, two reserved words, the data, then options."""
+    fields = [
+        ("length", "I", len(data) if length is None else length),
+        ("reserved0", "I", reserved0),
+        ("reserved1", "I", reserved1),
+    ]
+    return Block(spec.LIGHT_CUSTOM_BLOCK, fields=fields, data=data, options=list(options))
+
+
+def raw_block(block_type, body=b""):
+    """A block of any type with `body` as is: no fields, no padding added, no options."""
+    block = Block(block_type)
+    block.trailer = body
+    return block
 
 
 def packet_data(length, seed=0):

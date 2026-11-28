@@ -44,7 +44,21 @@ def test_read(case_id, path, mode, tool, backend, regen_golden, request):
     compare_with_golden(golden, actual, crash, regen_golden)
 
 
+MISSING_FILE_NAMES = ["missing.pcapng", "missing.pcapng.zst"]
+
+
+@pytest.mark.parametrize("name", MISSING_FILE_NAMES)
+def test_read_missing_file(name, tool, backend, regen_golden, tmp_path):
+    """light_pcapng_open_read() on a file that doesn't exist; a .zst name goes through the decompressing open."""
+    if is_zstd_case(name) and not tool.info["zstd"]:
+        pytest.skip("tool built without zstd")
+    actual, crash = tool.read(backend, tmp_path / name, [])
+    compare_with_golden(READ_GOLDEN_DIR / "missing" / f"{name}.json", actual, crash, regen_golden)
+
+
+
 def test_no_stale_read_goldens(regen_golden):
     """Every read golden belongs to a corpus case. With --regen-golden, stale ones are deleted instead."""
     expected = {golden_path(case_id, mode) for case_id, _ in corpus_cases() for mode in READ_MODES}
+    expected |= {READ_GOLDEN_DIR / "missing" / f"{name}.json" for name in MISSING_FILE_NAMES}
     check_no_stale_goldens(READ_GOLDEN_DIR, expected, regen_golden)
