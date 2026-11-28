@@ -1,0 +1,7 @@
+{
+  "description": "Default file info and one packet",
+  "fileInfo": "default",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

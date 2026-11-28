@@ -1,0 +1,9 @@
+{
+  "description": "Only fileComment set; the others are null pointers",
+  "fileInfo": {
+    "fileComment": "value"
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "description": "300-byte strings, longer than one length byte can describe",
+  "fileInfo": {
+    "osDesc": {
+      "repeat": "o",
+      "times": 300
+    },
+    "hardwareDesc": {
+      "repeat": "h",
+      "times": 300
+    },
+    "userAppDesc": {
+      "repeat": "u",
+      "times": 300
+    },
+    "fileComment": {
+      "repeat": "c",
+      "times": 300
+    }
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

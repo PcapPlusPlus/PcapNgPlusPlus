@@ -57,6 +57,8 @@ Blocks are dispatched in `parse_by_block_type()` (`light_pcapng.c:100`). It has 
 | `read_all_interfaces` rewinds with `fseek()` on the raw file, which doesn't reset the zstd stream, so a compressed file yields no packets (found by the tool) | `light_pcapng_open_read`, `light_set_pos` | Every `.zst` case with `--all-interfaces` |
 | `assert()` aborts on malformed input in Debug builds only; Release reads through | `light_read_record` | Goldens from Release; non-pcapng and truncated inputs |
 | Timestamps after January 2038 wrap negative where `timespec::tv_sec` is 32-bit, such as 32-bit MinGW (found by CI) | `light_get_next_packet` | `pcapng-example.pcapng` (year 2061); expected failures on those platforms until the new code fixes it |
+| A 65535-byte option (packet or file comment) overflows the heap: the length is padded to a multiple of 4 in a `uint16_t`, which wraps to 0, then 65535 bytes are copied into a 0-byte allocation (found by write cases) | `light_create_option` | `write/comments/length_65535`, `write/fileinfo/comment_length_65535` (recorded as crashes) |
+| An uncompressed file whose name contains `.zst` hangs the reader: the zstd stream never ends (found by write cases) | `read_zstd_compressed` | `write/compression/level_0_zst_name`, `write/compression/level_negative` (recorded as hangs) |
 
 Measure branch coverage on both implementations. On legacy, it shows the corpus is complete. On the new code, it flags branches the rewrite added that the spec-driven cases don't reach yet.
 
@@ -239,7 +241,8 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 - [ ] Metamorphic tests for uninterpreted options
 - [ ] One case family per row of the Axis 2 table
 - [ ] Truncation at every byte and bit flips in length fields
-- [ ] Write and append operations with `WriteScript` cases
+- [x] Write operation with `WriteScript` cases (56 cases: file info, packets, comments, timestamps, flush, compression, open failure)
+- [ ] Append operation
 - [ ] Real-world corpus imported, licenses checked
 
 ### M3: Measure the baseline
@@ -303,3 +306,6 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 | 2026-11-28 | Coverage is measured with GCC `--coverage` and gcovr, and uploaded to Codecov | The same tools as PcapPlusPlus; Codecov collects, summarizes and visualizes the data |
 | 2026-11-28 | Coverage counts every compiled `legacy/LightPcapNg` file in full, with no exclusions | The number shown is the real one; about a third of the lines (in functions the 11 ext functions never call) can't be covered, so the reachable maximum is about 66% of lines and 71% of branches |
 | 2026-11-28 | One Linux coverage job (zstd on), not one per platform | Legacy has no platform-specific code paths, only min/max macro workarounds; platform differences in behavior are caught by the goldens on every platform |
+| 2026-11-28 | Write cases are JSON scripts in `conformance/cases/write/`, run by a `write` tool operation that fills the packet header as PcapPlusPlus does | Write cases are data, not code; filling the header the same way reaches the same legacy paths PcapPlusPlus does |
+| 2026-11-28 | A write dump records the written file's size and sha256 only when uncompressed, plus a read of the file back | Compressed bytes depend on the zstd version, which differs across platforms; the read checks the content either way. Recording the sha256 separately leaves the open byte-identical-writer question open |
+| 2026-11-28 | A hang is recorded as `{"hang": true}`, like a crash, with a 10-second default timeout and 3 seconds when the golden is a hang | Legacy hangs on some inputs; recording it documents the bug and gives the new code a target, without slowing every run |

@@ -1,0 +1,10 @@
+{
+  "description": "Flushes between packets",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}},
+    {"flush": true},
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000001}},
+    {"flush": true},
+    {"flush": true}
+  ]
+}

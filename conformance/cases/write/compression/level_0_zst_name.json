@@ -1,0 +1,10 @@
+{
+  "description": "Level 0 (no compression) written to a .zst name; the reader then expects zstd",
+  "compressionLevel": 0,
+  "fileName": "out.pcapng.zst",
+  "steps": [
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000001}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000002}}
+  ]
+}

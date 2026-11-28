@@ -3,6 +3,7 @@ add_executable(
   Backend.cpp
   Dump.cpp
   LegacyBackend.cpp
+  Script.cpp
   Sha256.cpp
   main.cpp
 )

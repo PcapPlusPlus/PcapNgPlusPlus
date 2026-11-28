@@ -1,0 +1,10 @@
+{
+  "description": "Compressed, but written to a .pcapng name; the reader then doesn't decompress",
+  "compressionLevel": 5,
+  "fileName": "out.pcapng",
+  "steps": [
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000001}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000002}}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Non-ASCII bytes: UTF-8 text and bytes 0x80 and 0xFF",
+  "fileInfo": {
+    "osDesc": "\u00c3\u00a9t\u00c3\u00a9",
+    "fileComment": "\u0080\u00ff\u0001"
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

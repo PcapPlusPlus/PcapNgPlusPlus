@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "operation": "write",
+  "opened": true,
+  "file": {
+    "compressed": false,
+    "size": 5340,
+    "sha256": "65b35a845a51bab96912cfffe92b26324eae9abac1def1ac8f160e7b4fcedd72"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": null,
+      "userAppDesc": null,
+      "interfaces": []
+    },
+    "packetCount": 4,
+    "packets": [
+      {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":100,"originalLength":100,"comment":null,"data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f60616263"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":2000,"originalLength":2000,"comment":null,"dataSha256":"bb71b99a92ccee0d5c2fda0aa2899baa5b365c2669166e23e3881c54456f535b"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":50,"originalLength":50,"comment":null,"data":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031"},
+      {"interfaceId":0,"linkType":1,"timestampSec":1700000000,"timestampNsec":0,"capturedLength":3000,"originalLength":3000,"comment":null,"dataSha256":"8238f003ad1a7f56965542e097622333a1e90eb52301496c34fe39ab34c2e9e6"}
+    ],
+    "interfacesAfterRead": [
+      {"linkType":1,"ticksPerSecond":1000000000}
+    ]
+  }
+}

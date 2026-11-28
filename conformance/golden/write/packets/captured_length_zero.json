@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "operation": "write",
+  "opened": true,
+  "file": {
+    "compressed": false,
+    "size": 28,
+    "sha256": "4be0e39adfcb63f0796c8a77b7c61f325ba2bad764f64b975ff3d8ae33185f70"
+  },
+  "reread": {
+    "readAllInterfaces": false,
+    "opened": true,
+    "fileInfo": {
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "fileComment": null,
+      "hardwareDesc": null,
+      "osDesc": null,
+      "userAppDesc": null,
+      "interfaces": []
+    },
+    "packetCount": 0,
+    "packets": [],
+    "interfacesAfterRead": []
+  }
+}

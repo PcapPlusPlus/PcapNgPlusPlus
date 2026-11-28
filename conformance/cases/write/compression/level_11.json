@@ -1,0 +1,9 @@
+{
+  "description": "Level 11, above the documented maximum of 10 (clamped)",
+  "compressionLevel": 11,
+  "steps": [
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000001}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000002}}
+  ]
+}

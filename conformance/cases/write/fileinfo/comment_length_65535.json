@@ -1,0 +1,12 @@
+{
+  "description": "A 65535-byte file comment; an option length is a uint16_t",
+  "fileInfo": {
+    "fileComment": {
+      "repeat": "c",
+      "times": 65535
+    }
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "description": "interface_id 5 in the header; the writer picks the interface by link type",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "interfaceId": 5, "timestampSec": 1700000000}}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Level -1, below 0 (clamped to no compression)",
+  "compressionLevel": -1,
+  "fileName": "out.pcapng.zst",
+  "steps": [
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000001}},
+    {"packet": {"data": {"length": 200}, "timestampSec": 1700000002}}
+  ]
+}

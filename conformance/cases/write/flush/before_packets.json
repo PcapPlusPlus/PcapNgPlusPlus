@@ -1,0 +1,7 @@
+{
+  "description": "light_pcapng_flush() before any packet",
+  "steps": [
+    {"flush": true},
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

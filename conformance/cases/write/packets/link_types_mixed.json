@@ -1,0 +1,10 @@
+{
+  "description": "Link types 1, 113, 1, 101, 113: the writer adds an IDB for each new link type",
+  "steps": [
+    {"packet": {"data": {"length": 60}, "linkType": 1, "timestampSec": 1700000000}},
+    {"packet": {"data": {"length": 60}, "linkType": 113, "timestampSec": 1700000001}},
+    {"packet": {"data": {"length": 60}, "linkType": 1, "timestampSec": 1700000002}},
+    {"packet": {"data": {"length": 60}, "linkType": 101, "timestampSec": 1700000003}},
+    {"packet": {"data": {"length": 60}, "linkType": 113, "timestampSec": 1700000004}}
+  ]
+}

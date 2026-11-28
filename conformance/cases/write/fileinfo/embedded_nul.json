@@ -1,0 +1,9 @@
+{
+  "description": "A NUL in the middle; legacy measures strings with strlen(), so it stops there",
+  "fileInfo": {
+    "osDesc": "before\u0000after"
+  },
+  "steps": [
+    {"packet": {"data": {"length": 60}, "timestampSec": 1700000000}}
+  ]
+}

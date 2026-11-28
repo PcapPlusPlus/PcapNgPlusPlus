@@ -122,5 +122,71 @@ namespace pcpp
 
 			return result;
 		}
+
+		namespace
+		{
+			/// An absent string becomes a null pointer. Like PcapPlusPlus's std::string::c_str(), a present one is
+			/// NUL-terminated, so legacy's strlen() stops at an embedded NUL.
+			const char* toCString(const OptionalBytes& value)
+			{
+				return value.present ? value.value.c_str() : nullptr;
+			}
+
+			void writePacket(light_pcapng_t* handle, const PacketToWrite& packet)
+			{
+				// Filled the way PcapPlusPlus's PcapNgFileWriterDevice::writePacket() fills it
+				light_packet_header header;
+				std::memset(&header, 0, sizeof(header));
+				header.interface_id = packet.interfaceId;
+				header.captured_length = packet.capturedLength;
+				header.original_length = packet.originalLength;
+				header.timestamp.tv_sec = static_cast<decltype(header.timestamp.tv_sec)>(packet.timestampSec);
+				header.timestamp.tv_nsec = static_cast<decltype(header.timestamp.tv_nsec)>(packet.timestampNsec);
+				header.data_link = packet.linkType;
+
+				std::string comment = packet.comment.value;
+				if (packet.comment.present && !comment.empty())
+				{
+					header.comment = &comment[0];
+					header.comment_length = static_cast<uint16_t>(comment.size());
+				}
+
+				light_write_packet(handle, &header, packet.data.data());
+			}
+		}  // namespace
+
+		WriteResult LegacyBackend::write(const std::string& path, const WriteScript& script)
+		{
+			WriteResult result;
+
+			light_pcapng_file_info* info =
+			    script.defaultFileInfo
+			        ? light_create_default_file_info()
+			        : light_create_file_info(toCString(script.osDesc), toCString(script.hardwareDesc),
+			                                 toCString(script.userAppDesc), toCString(script.fileComment));
+
+			// On success the handle owns the file info; on failure the caller frees it, as PcapPlusPlus does
+			Handle handle(light_pcapng_open_write(path.c_str(), info, script.compressionLevel));
+			if (!handle)
+			{
+				light_free_file_info(info);
+				return result;
+			}
+			result.opened = true;
+
+			for (const WriteStep& step : script.steps)
+			{
+				if (step.kind == WriteStep::Kind::Flush)
+				{
+					light_pcapng_flush(handle.get());
+				}
+				else
+				{
+					writePacket(handle.get(), step.packet);
+				}
+			}
+
+			return result;
+		}
 	}  // namespace conformance
 }  // namespace pcpp
