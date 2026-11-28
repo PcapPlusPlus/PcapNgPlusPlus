@@ -223,12 +223,12 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 
 ### M1: Skeleton, end to end
 
-- [ ] `legacy/` copied from PcapPlusPlus, `UPSTREAM_COMMIT` recorded, `scripts/sync-legacy.sh`
+- [x] `legacy/` copied from PcapPlusPlus, `UPSTREAM_COMMIT` recorded, `scripts/sync-legacy.sh`
 - [ ] Generator: `builder.py` and spec tables for SHB, IDB, EPB, SPB
 - [ ] Tool with `LegacyBackend` and canonical JSON dump (read only)
 - [ ] pytest runner with per-case subprocess, golden compare, `--regen-golden`
 - [ ] PcapPlusPlus's existing 11 `.pcapng`/`.zst` fixtures pass through the loop
-- [ ] Top-level CMake and a first CI workflow
+- [x] Top-level CMake and a first CI workflow (build only; tests get added as they land)
 
 ### M2: Full corpus
 
@@ -281,3 +281,5 @@ The suite is built and green against legacy (M1–M3) before any new code is wri
 | 2026-11-27 | Goldens are generated from legacy and committed | The suite must outlive the legacy code |
 | 2026-11-27 | Per-case subprocess driven by pytest | Legacy crashes on some inputs; one crash mustn't kill the run |
 | 2026-11-27 | Don't port code that PcapPlusPlus can't reach | It's out of scope and only adds risk |
+| 2026-11-27 | `legacy/` is a verbatim copy of all of `3rdParty/LightPcapNg`, including out-of-scope files, built with its own upstream `CMakeLists.txt` | The sync check stays a plain directory diff, and legacy builds exactly as PcapPlusPlus builds it |
+| 2026-11-27 | CI builds on PcapPlusPlus's platform matrix (Linux distros, macOS, Visual Studio, MinGW, FreeBSD, Android), with zstd on where available | The rewrite has to work everywhere PcapPlusPlus ships LightPcapNg today |

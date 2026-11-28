@@ -45,13 +45,24 @@ Same as PcapPlusPlus:
 
 ## Building and testing
 
-To be filled in during M1. Expected shape:
+```bash
+cmake -S . -B build                      # add -DLIGHT_PCAPNG_ZSTD=ON for zstd support (needs zstd >= 1.4.0)
+cmake --build build
+```
+
+Right now this builds only the legacy library (`light_pcapng_legacy`, an alias of legacy's `light_pcapng` OBJECT library). The legacy library builds with PcapPlusPlus's own `legacy/CMakeLists.txt`, so its sources and flags match what PcapPlusPlus ships.
+
+There are no tests yet. Once they exist, they'll run with something like `cd conformance && python3 -m pytest --tool-path ../build/...`.
+
+To sync `legacy/` with PcapPlusPlus:
 
 ```bash
-cmake -S . -B build
-cmake --build build
-cd conformance && python3 -m pytest --tool-path ../build/...
+scripts/sync-legacy.sh [--repo <path-or-url>] [<ref>]   # default: seladb/PcapPlusPlus master
+git add -f legacy                                       # -f: some upstream files match .gitignore patterns
+scripts/sync-legacy.sh --check                          # exit 1 if legacy/ differs from upstream
 ```
+
+CI (`.github/workflows/build.yml`) builds on PcapPlusPlus's platform matrix: Linux (PcapPlusPlus Docker images, GCC and Intel icx), macOS (arm64 and x86_64), Visual Studio (Win32, x64, ARM64), MinGW-w64, FreeBSD and Android. zstd is on where the platform provides it. A separate job warns when `legacy/` falls behind PcapPlusPlus `master`.
 
 ## Before opening a PR
 

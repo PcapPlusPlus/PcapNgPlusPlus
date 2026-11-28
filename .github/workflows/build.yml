@@ -1,0 +1,261 @@
+name: Build
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  BUILD_DIR: build
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# The platform matrix follows PcapPlusPlus's build_and_test.yml, so that everything PcapPlusPlus ships LightPcapNg on
+# is covered here too. zstd is enabled wherever the platform provides it easily.
+jobs:
+  linux:
+    name: linux (${{ matrix.image }}, zstd ${{ matrix.config-zstd }})
+    runs-on: ${{ matrix.runner }}
+    container: seladb/${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: # Images are defined in https://github.com/seladb/PcapPlusPlus-DockerImages
+          - runner: ubuntu-latest
+            image: ubuntu2604
+            config-zstd: OFF
+          - runner: ubuntu-latest
+            image: ubuntu2604
+            config-zstd: ON
+          - runner: ubuntu-26.04-arm
+            image: ubuntu2604-arm64
+            config-zstd: ON
+          - runner: ubuntu-latest
+            image: ubuntu2604-icpx
+            config-zstd: OFF
+            additional-flags: -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx
+          - runner: ubuntu-latest
+            image: ubuntu2404
+            config-zstd: OFF
+          - runner: ubuntu-latest
+            image: ubuntu2204
+            config-zstd: OFF
+          - runner: ubuntu-latest
+            image: rhel94
+            config-zstd: OFF
+          - runner: ubuntu-latest
+            image: fedora42
+            config-zstd: OFF
+          - runner: ubuntu-latest
+            image: alpine320
+            config-zstd: OFF
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Intel Compiler variables
+        if: contains(matrix.image, 'icpx')
+        run: |
+          . /opt/intel/oneapi/setvars.sh
+          printenv >> $GITHUB_ENV
+
+      - name: Configure
+        run: cmake -DLIGHT_PCAPNG_ZSTD=${{ matrix.config-zstd }} ${{ matrix.additional-flags }} -S . -B "$BUILD_DIR"
+
+      - name: Build
+        run: cmake --build "$BUILD_DIR" -j
+
+  macos:
+    name: macos (${{ matrix.os-version }}, ${{ matrix.arch }}, zstd ${{ matrix.config-zstd }})
+    runs-on: ${{ matrix.os-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os-version: macos-26
+            arch: arm64
+            config-zstd: ON
+          - os-version: macos-26-intel
+            arch: x86_64
+            config-zstd: ON
+          - os-version: macos-15
+            arch: arm64
+            config-zstd: ON
+          # Cross-compiled; Homebrew's zstd is arm64 only on this runner
+          - os-version: macos-15
+            arch: x86_64
+            config-zstd: OFF
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install zstd
+        if: matrix.config-zstd == 'ON'
+        run: brew install zstd
+
+      - name: Configure
+        run: cmake -DLIGHT_PCAPNG_ZSTD=${{ matrix.config-zstd }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -S . -B "$BUILD_DIR"
+
+      - name: Build
+        run: cmake --build "$BUILD_DIR" -j
+
+      - name: Check architecture
+        run: |
+          for obj in $(find "$BUILD_DIR/legacy" -name '*.o'); do
+            lipo "$obj" -verify_arch ${{ matrix.arch }}
+          done
+
+  visual-studio:
+    name: visual-studio (${{ matrix.os }}, ${{ matrix.arch }}, zstd ${{ matrix.config-zstd }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            generator: "Visual Studio 18 2026"
+            arch: Win32
+            config-zstd: OFF
+          - os: windows-2025
+            generator: "Visual Studio 18 2026"
+            arch: x64
+            config-zstd: OFF
+          - os: windows-2025
+            generator: "Visual Studio 18 2026"
+            arch: x64
+            config-zstd: ON
+            vcpkg-triplet: x64-windows-static-md
+          - os: windows-2022
+            generator: "Visual Studio 17 2022"
+            arch: x64
+            config-zstd: OFF
+          - os: windows-11-arm
+            generator: "Visual Studio 18 2026"
+            arch: ARM64
+            config-zstd: OFF
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install zstd
+        if: matrix.config-zstd == 'ON'
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg" install zstd:${{ matrix.vcpkg-triplet }}
+          $prefix = "$env:VCPKG_INSTALLATION_ROOT\installed\${{ matrix.vcpkg-triplet }}"
+          echo "ZSTD_FLAGS=-DCMAKE_PREFIX_PATH=$prefix" >> $env:GITHUB_ENV
+
+      - name: Configure
+        run: cmake -G "${{ matrix.generator }}" -A ${{ matrix.arch }} -DLIGHT_PCAPNG_ZSTD=${{ matrix.config-zstd }} $env:ZSTD_FLAGS -S . -B "$env:BUILD_DIR"
+
+      - name: Build
+        run: |
+          cmake --build "$env:BUILD_DIR" --config Debug -j
+          cmake --build "$env:BUILD_DIR" --config Release -j
+
+  mingw-w64:
+    name: mingw-w64 (${{ matrix.sys }}, zstd ${{ matrix.config-zstd }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sys: mingw32
+            env: i686
+            config-zstd: OFF
+          - sys: mingw64
+            env: x86_64
+            config-zstd: ON
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+        with:
+          msystem: ${{ matrix.sys }}
+          install: >-
+            mingw-w64-${{ matrix.env }}-cmake
+            mingw-w64-${{ matrix.env }}-gcc
+            mingw-w64-${{ matrix.env }}-make
+            mingw-w64-${{ matrix.env }}-zstd
+
+      - name: Configure
+        run: cmake -G "MinGW Makefiles" -DLIGHT_PCAPNG_ZSTD=${{ matrix.config-zstd }} -S . -B "$BUILD_DIR"
+
+      - name: Build
+        run: cmake --build "$BUILD_DIR" -j
+
+  freebsd:
+    name: freebsd (${{ matrix.version }}, zstd ${{ matrix.config-zstd }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: "15.1"
+            config-zstd: ON
+          - version: "14.1"
+            config-zstd: OFF
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build in FreeBSD
+        uses: vmactions/freebsd-vm@811efaaac0668df8bfb8308c3ec997b5ab50037b # v1.6.0
+        with:
+          release: ${{ matrix.version }}
+          usesh: true
+          prepare: pkg install -y cmake zstd
+          run: |
+            set -e
+            cmake -DLIGHT_PCAPNG_ZSTD=${{ matrix.config-zstd }} -S . -B build
+            cmake --build build -j$(sysctl -n hw.ncpu)
+
+  android:
+    name: android (${{ matrix.target }}, API ${{ matrix.api-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64
+            api-version: 35
+          - target: x86
+            api-version: 35
+          - target: armeabi-v7a
+            api-version: 35
+          - target: arm64-v8a
+            api-version: 35
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" \
+            -DANDROID_PLATFORM=${{ matrix.api-version }} -DANDROID_ABI=${{ matrix.target }} -S . -B "$BUILD_DIR"
+
+      - name: Build
+        run: cmake --build "$BUILD_DIR" -j
+
+  legacy-sync:
+    name: legacy/ matches PcapPlusPlus master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Only warns: upstream changes to LightPcapNg are picked up deliberately with scripts/sync-legacy.sh
+      - name: Compare legacy/ with PcapPlusPlus master
+        run: |
+          if ! scripts/sync-legacy.sh --check; then
+            echo "::warning title=legacy/ is out of date::3rdParty/LightPcapNg changed in PcapPlusPlus master. Run scripts/sync-legacy.sh to pick it up."
+          fi
